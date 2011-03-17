@@ -1,18 +1,17 @@
--ifndef (ESTDCOLL_RANDOM_ACCESS_COLLECTION_HRL).
--define (ESTDCOLL_RANDOM_ACCESS_COLLECTION_HRL, true).
+-ifndef (ESTDCOLL_STRICT_COLLECTION_HRL).
+-define (ESTDCOLL_STRICT_COLLECTION_HRL, true).
 
--define (COLLECTION_BEHAVIOR_TYPES, true).
 -include_lib ("estdcoll/include/collection.hrl").
 
--ifdef (RANDOM_ACCESS_COLLECTION_BEHAVIOR_EXPORTS).
+-ifdef (STRICT_COLLECTION_BEHAVIOR_EXPORTS).
 
--export ([at/1]).
+-export ([size/0]).
 
 -endif.
 
--ifdef (RANDOM_ACCESS_COLLECTION_BEHAVIOR_SPECS).
+-ifdef (STRICT_COLLECTION_BEHAVIOR_SPECS).
 
--spec at (any()) -> any() | no_return().
+-spec size () -> non_neg_integer().
 
 -endif.
 

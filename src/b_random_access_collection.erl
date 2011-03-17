@@ -36,7 +36,7 @@
 %%% ============================================================================
 
 behaviour_info (callbacks) ->
-  [{at, 1}];
+  estdcoll:inherit_behavior(b_collection, [{at, 1}]);
 behaviour_info (_) ->
   undefined.
 

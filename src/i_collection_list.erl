@@ -25,6 +25,8 @@
 -define (ORDERED_COLLECTION_BEHAVIOR_SPECS, true).
 -define (ORDERED_COLLECTION_BEHAVIOR_EXPORTS, true).
 -define (RANDOM_ACCESS_COLLECTION_BEHAVIOR_EXPORTS, true).
+-define (STRICT_COLLECTION_BEHAVIOR_EXPORTS, true).
+-include_lib ("estdcoll/include/strict_collection.hrl").
 -include_lib ("estdcoll/include/random_access_collection.hrl").
 -include_lib ("estdcoll/include/ordered_collection.hrl").
 
@@ -44,6 +46,8 @@
                     {map, 1},
                     {merge, 2},
                     {put,   1},
+                    {reverse, 0},
+                    {size, 0},
                     {to_erlang, 0}]}]).
 
 %%% --------------------------------------------------------------------
@@ -137,6 +141,9 @@ put (Item) ->
 
 reverse () ->
   new(lists:reverse(List)).
+
+size () ->
+  length(List).
 
 to_erlang () ->
   List.

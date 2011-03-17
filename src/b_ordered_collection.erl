@@ -41,8 +41,8 @@ behaviour_info (callbacks) ->
           {foldr,   2},
           {prepend, 1},
           {reverse, 0}],
-  estdcoll:inherit_behavior([b_collection,
-                             b_random_access_collection], Mine);
+  estdcoll:inherit_behavior([b_random_access_collection,
+                             b_strict_collection], Mine);
 behaviour_info (_) ->
   undefined.
 
