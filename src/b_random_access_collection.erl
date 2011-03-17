@@ -1,10 +1,10 @@
 %%% ==========================================================================
 %%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
 %%% @since 2011-03-17
-%%% @doc Erlang Standard Ordered Collection Behavior. 
+%%% @doc TODO: Add description to b_random_access_collection
 %%% @end
 %%% ==========================================================================
--module  (b_ordered_collection).
+-module  (b_random_access_collection).
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
 -include ("vsn").
 
@@ -18,10 +18,10 @@
 %%% I n t e r n a l  e x p o r t s
 %%% --------------------------------------------------------------------
 
--define (ORDERED_COLLECTION_BEHAVIOR_INT, true).
--define (ORDERED_COLLECTION_BEHAVIOR_IMP, true).
+-define (RANDOM_ACCESS_COLLECTION_BEHAVIOR_EXPORTS, true).
+-define (RANDOM_ACCESS_COLLECTION_BEHAVIOR_SPECS, true).
+-define (RANDOM_ACCESS_COLLECTION_BEHAVIOR_TYPES, true).
 -include ("estdcoll/include/random_access_collection.hrl").
--include ("estdcoll/include/ordered_collection.hrl").
 
 %%% --------------------------------------------------------------------
 %%% M a c r o s
@@ -36,13 +36,7 @@
 %%% ============================================================================
 
 behaviour_info (callbacks) ->
-  Mine = [{append,  1},
-          {foldl,   2},
-          {foldr,   2},
-          {prepend, 1},
-          {reverse, 0}],
-  estdcoll:inherit_behavior([b_collection,
-                             b_random_access_collection], Mine);
+  [{at, 1}];
 behaviour_info (_) ->
   undefined.
 
@@ -50,9 +44,4 @@ behaviour_info (_) ->
 %%% B e h a v i o r  F u n c t i o n s
 %%% ============================================================================
 
-append (_) -> ?MODULE.
-foldl (_, _) -> {}.
-foldr (_, _) -> {}.
-prepend (_) -> ?MODULE.
-reverse () -> ?MODULE.
-
+at (_) -> item.

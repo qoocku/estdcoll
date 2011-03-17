@@ -57,7 +57,7 @@
                   b_collection:acc()) -> b_collection:acc().
 -spec foreach   (b_collection:trav_fun()) -> any().
 -spec has       (any()) -> boolean().
--spec internals () -> internals().
+-spec internals () -> b_collection:internals().
 -spec is_empty  () -> boolean(). 
 -spec map       (b_collection:trav_fun()) -> b_collection:collection().
 -spec merge     (b_collection:merge_fun(), b_collection:collection()) -> b_collection:collection().

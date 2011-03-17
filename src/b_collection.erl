@@ -1,10 +1,10 @@
 %%% ==========================================================================
 %%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
 %%% @since 2011-03-17
-%%% @doc Erlang Standard Unordered Collection Behavior.
+%%% @doc Erlang Standard Generic Collection Behavior.
 %%% @end
 %%% ==========================================================================
--module(b_unordered_collection).
+-module(b_collection).
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
 -include ("vsn").
 
@@ -18,19 +18,49 @@
 %%% R e c o r d s ,  T y p e s  a n d  S p e c s
 %%% --------------------------------------------------------------------
 
+-define (COLLECTION_BEHAVIOR_EXPORT, true).
+-define (COLLECTION_BEHAVIOR_TYPES, true).
+-define (COLLECTION_BEHAVIOR_SPECS, true).
+-include ("estdcoll/include/collection.hrl").
 
 %%% ============================================================================
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s
 %%% ============================================================================
 
-behaviour_info (callback) ->
-  [{map, 1},
-   {fold, 2},
-   {foreach, 1}];
+behaviour_info (callbacks) ->
+  [{all,       1},
+   {any,       1},          
+   {delete,    1},
+   {extend,    1},
+   {filter,    1},      
+   {fold,      2},
+   {foreach,   1},
+   {has,       1},
+   {internals, 0},
+   {is_empty,  0},
+   {map,       1},
+   {merge,     2},
+   {put,       1},
+   {to_erlang, 0}];
 behaviour_info (_) ->
   undefined.
 
 %%% ============================================================================
-%%% L o c a l  F u n c t i o n s
+%%% I n t e r f a c e  F u n c t i o n s
 %%% ============================================================================
+
+any (Pred) when is_function(Pred) -> true.
+all (Pred) when is_function(Pred) -> true.
+delete (_) -> ?MODULE.
+extend (_) -> ?MODULE.
+filter (Pred) when is_function(Pred)  -> ?MODULE.
+fold (Fun, _) when is_function(Fun)   -> ok.
+foreach (Fun) when is_function(Fun)    -> ok.
+has (_)      -> true.
+internals () -> {}.
+is_empty ()  -> true.
+map (Fun) when is_function(Fun)      -> ?MODULE.
+merge (Fun, _) when is_function(Fun) -> ?MODULE.
+put (_) -> ?MODULE.
+to_erlang () -> {}.
 

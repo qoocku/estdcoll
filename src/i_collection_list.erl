@@ -24,7 +24,9 @@
 -define (COLLECTION_BEHAVIOR_EXPORTS, true).
 -define (ORDERED_COLLECTION_BEHAVIOR_SPECS, true).
 -define (ORDERED_COLLECTION_BEHAVIOR_EXPORTS, true).
--include ("estdcoll/include/ordered_collection.hrl").
+-define (RANDOM_ACCESS_COLLECTION_BEHAVIOR_EXPORTS, true).
+-include_lib ("estdcoll/include/random_access_collection.hrl").
+-include_lib ("estdcoll/include/ordered_collection.hrl").
 
 -compile([{inline, [{all,    1},
                     {any,    1},
