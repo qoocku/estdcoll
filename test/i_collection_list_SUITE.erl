@@ -27,7 +27,9 @@
          test_put/1,
          test_delete/1,
          test_size/1,
-         test_reverse/1]).
+         test_reverse/1,
+         test_has/1,
+         test_is_empty/1]).
 
 suite() -> 
   [{timetrap, {minutes,1}}].  
@@ -40,7 +42,9 @@ groups () ->
                               test_any,
                               test_all,
                               test_put,
-                              test_delete]},
+                              test_delete,
+                              test_has,
+                              test_is_empty]},
    {ordered, [sequence], [{group, collections},
                           test_size,
                           test_reverse]},
@@ -52,6 +56,16 @@ init_per_suite(Config) ->
 end_per_suite (_Config) ->    
     ok.
 
+init_per_group (collections, Config) ->
+  [{mutation_arg, -1000},
+   {has_arg, 500},
+   {foreach_fun, fun(Item) -> put(acc, get(acc) + Item) end},
+   {pred_fun, fun (I) -> I =< 500 end},
+   {trav_fun, fun (I) -> I + 1 end},
+   {fold_fun, fun
+                (acc, _) -> 0;
+                (I, Acc) -> Acc + I 
+              end} | Config];
 init_per_group (list, Config) ->
   Samples = lists:seq(1, 1000),  
   [{collection, i_collection_list:new(Samples)},
@@ -65,14 +79,7 @@ end_per_group (_, _) ->
   ok.
 
 init_per_testcase(_Case, Config) ->
-  [{mutation_arg, -1000},
-   {foreach_fun, fun(Item) -> put(acc, get(acc) + Item) end},
-   {pred_fun, fun (I) -> I =< 500 end},
-   {trav_fun, fun (I) -> I + 1 end},
-   {fold_fun, fun
-                (acc, _) -> 0;
-                (I, Acc) -> Acc + I 
-              end} | Config].
+  Config.
 
 end_per_testcase(_Case, _Config) -> 
     ok. 
@@ -130,6 +137,18 @@ test_size (lists, Config) ->
 test_reverse (Config) ->
   test_fun0(Config, reverse).
 
+test_has (Config) ->
+  test_has(?config(erl_mod, Config), Config).
+
+test_has (lists, Config) ->
+  test_collection(Config, {has, member}, has_arg, std).
+
+test_is_empty (Config) ->
+  test_is_empty(?config(erl_mod, Config), Config).
+
+test_is_empty (lists, Config) ->
+  test_collection(Config, is_empty, undefined,
+                  {std, std, fun (lists, is_empty, [Xs]) -> Xs =:= [] end}).
 %%% ------- local functions --------
 
 test_collection (Config, Function, FunKey, ResultFun) ->
