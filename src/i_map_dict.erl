@@ -41,6 +41,7 @@
                     {filter, 1},
                     {fold, 2},
                     {foreach, 1},
+                    {get, 1},
                     {has, 1},
                     {is_empty, 0},
                     {internals, 0},
@@ -94,7 +95,7 @@ delete (Key) ->
 extend (Dict2) ->
   merge(fun (_, _) -> exit(badarg) end, Dict2).
 
-fetch (Key) ->
+get (Key) ->
   case dict:find(Key, Dict) of
     none -> undefined;
     {ok, V} -> {ok, V}

@@ -44,7 +44,7 @@
 -spec behaviour_info (callbacks) -> estdcoll:behavior_list().
 
 behaviour_info (callbacks) ->
-  estdcoll:inherit_behavior(b_collection, [{at, 1}]);
+  estdcoll:inherit_behavior(b_collection, [{at, 1}, {get, 1}]);
 behaviour_info (_) ->
   undefined.
 
@@ -57,4 +57,6 @@ behaviour_info (_) ->
 %%      the function exits with `badarg' value.
 
 at (Key) -> {}.
+
+get (Key) -> any.
 

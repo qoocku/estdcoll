@@ -36,6 +36,7 @@
                     {delete, 1},
                     {extend, 1},
                     {filter, 1},
+                    {get, 1},
                     {fold, 2},
                     {foldl, 2},
                     {foldr, 2},
@@ -78,8 +79,10 @@ any (Pred) when is_function(Pred) ->
 all (Pred) when is_function(Pred) ->
   lists:all(Pred, List).
 
-at (Index) ->
-  lists:nth(Index, List).
+at (Index) when Index >= 0 andalso Index =< length(List) ->
+  lists:nth(Index, List);
+at (_Index) ->
+  exit(badarg).
 
 append (List2) when is_list(List2) ->
   new(List ++ List2);
@@ -110,6 +113,11 @@ foldl (Fun, Acc) when is_function(Fun) ->
 foreach (Fun) when is_function(Fun) ->
   lists:foreach(Fun, List).
 
+get (Index) when Index > 0 andalso Index =< length(List) ->
+  {ok, at(Index)};
+get (_Index) ->
+  undefined.
+  
 has (Item) ->
   lists:member(Item, List).
 

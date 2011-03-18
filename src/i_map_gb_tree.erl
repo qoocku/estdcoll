@@ -40,6 +40,7 @@
                     {filter, 1},
                     {fold, 2},
                     {foreach, 1},
+                    {get, 1},
                     {has, 1},
                     {is_empty, 0},
                     {internals, 0},
@@ -77,17 +78,27 @@ any (Pred) when is_function(Pred) ->
   lists:any(Pred, gb_trees:to_list(Tree)).
 
 at (Key) ->
-  gb_trees:get(Key, Tree).
+  try
+    gb_trees:get(Key, Tree)
+  catch
+    _:_ -> exit(badarg)
+  end.
 
-delete (Item = {Key, _Value}) ->
+delete ({Key, _Value}) ->
   delete(Key);
 delete (Key) ->
   new(gb_trees:delete_any(Key, Tree)).
       
-extend (Tree2) ->
-  merge(fun (_, _) -> exit(badarg) end, Tree2).
+extend (Tree2) when is_tuple(Tree2) andalso element(1, Tree2) =:= ?MODULE ->
+  extend(Tree2:to_erlang());
+extend (Tree2) when is_tuple(Tree2) ->
+  {Src, Tgt} = case gb_trees:size(Tree2) > size() of
+                 true  -> {Tree, Tree2};
+                 false -> {Tree2, Tree}
+               end,
+  new(extend_loop(gb_trees:next(gb_trees:iterator(Src)), Tgt)).
 
-fetch (Key) ->
+get (Key) ->
   case gb_trees:lookup(Key, Tree) of
     none -> undefined;
     {value, V} -> {ok, V}
@@ -104,7 +115,7 @@ fold (Fun, Acc) when is_function(Fun) ->
   fold_loop(Fun, gb_trees:next(gb_trees:iterator(Tree)), Acc).
 
 has ({Key, Value}) ->
-  case fetch(Key) of
+  case THIS:get(Key) of
     {ok, Value}  -> true;
     {ok, _Other} -> false;
     undefined    -> false
@@ -127,14 +138,19 @@ map_values (Fun) when is_function(Fun) ->
 merge (Fun, Tree2) when is_function(Fun) andalso
                          is_tuple(Tree2) andalso
                          element(1, Tree2) =:= ?MODULE ->
-  exit(not_implemented);
+  merge(Fun, Tree2:to_erlang());
 merge (Fun, Tree2) when is_function(Fun) andalso
-                         is_tuple(Tree2) andalso 
-                         element(1, Tree2) =:= gb_tree ->
-  exit(not_implemented).
+                         is_tuple(Tree2) ->
+  {Src, Tgt} = case size() > gb_trees:size(Tree2) of
+                 true  -> {Tree2, Tree};
+                 false -> {Tree, Tree2}
+               end,
+  new(merge_loop(Fun, gb_trees:next(gb_trees:iterator(Src)), Tgt));
+merge (Fun, Collection) when is_function(Fun) ->
+  estdcoll:merge(Collection, THIS).
 
 put ({Key, Value}) ->
-  case fetch(Key) of
+  case THIS:get(Key) of
     {ok, Value} -> THIS;
     {ok, _}     -> new(gb_trees:update(Key, Value, Tree));
     undefined   -> new(gb_trees:insert(Key, Value, Tree))
@@ -180,3 +196,30 @@ map_loop (_, none, NewTree) ->
   NewTree;
 map_loop (Fun, {Key, Val, Iter}, Tree1) ->
   map_loop(Fun, gb_trees:next(Iter), [Fun({Key, Val}) | Tree1]).
+
+merge_loop (_, none, NewTree) ->
+  NewTree;
+merge_loop (Fun, {Key, Val, Iter}, Tree1) ->
+  NewTree = try gb_trees:get(Key, Tree1) of
+              Val  -> pass;
+              Val2 -> catch {ok, gb_trees:update(Key, Fun({Key, Val}, Val2), Tree1)} 
+            catch
+              _:_ -> {ok, gb_trees:insert(Key, Val, Tree1)}
+            end,
+  case NewTree of
+    pass    -> merge_loop(Fun, gb_trees:next(Iter), Tree1);
+    {ok, T} -> merge_loop(Fun, gb_trees:next(Iter), T);
+    _Other  -> exit(badarg)
+  end.
+
+extend_loop (none, NewTree) ->
+  NewTree;
+extend_loop ({Key, Val, Iter}, Tree1) ->
+  NewTree = try
+              gb_trees:insert(Key, Val, Tree1)
+            catch
+              _:_ -> exit(badarg)
+            end,
+  extend_loop(gb_trees:next(Iter), NewTree).
+
+  

@@ -9,13 +9,14 @@
 
 -ifdef (RANDOM_ACCESS_COLLECTION_BEHAVIOR_EXPORTS).
 
--export ([at/1]).
+-export ([at/1, get/1]).
 
 -endif.
 
 -ifdef (RANDOM_ACCESS_COLLECTION_BEHAVIOR_SPECS).
 
--spec at (any()) -> any().
+-spec at (any()) -> any() | no_return().
+-spec get (any()) -> {ok, any()} | undefined.
 
 -endif.
 

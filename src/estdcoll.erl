@@ -13,7 +13,9 @@
 %%% --------------------------------------------------------------------
 
 -export ([inherit_behavior/2,
-          inherit_behaviour/2]).
+          inherit_behaviour/2,
+          register_merge/2,
+          merge/2]).
 
 %%% --------------------------------------------------------------------
 %%% I n t e r n a l  e x p o r t s
@@ -52,6 +54,17 @@ inherit_behavior (Parents, Mine) ->
 
 inherit_behaviour (Parents, Mine) ->
   inherit_behavior(Parents, Mine).
+
+%% @doc Registers callback for merging collection of type `T1' and type `T2'.
+
+-spec register_merge ({atom(), atom()}, fun ((any(), b_collection:collection()) -> b_collection:collection())) -> ok.
+
+register_merge ({T1, T2}, MergeFun) ->
+  exit(not_implemented).
+
+merge (Coll1, Coll2) ->
+  exit(not_implemented).
+
 
 %%% ============================================================================
 %%% L o c a l  F u n c t i o n s
