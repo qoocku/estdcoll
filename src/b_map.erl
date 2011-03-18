@@ -37,7 +37,9 @@
 
 behaviour_info (callbacks) ->
   Mine = [{put,  2}],
-  estdcoll:inherit_behavior(b_collection, Mine);
+  estdcoll:inherit_behavior([b_collection,
+                             b_random_access_collection,
+                             b_strict_collection], Mine);
 behaviour_info (_) ->
   undefined.
 

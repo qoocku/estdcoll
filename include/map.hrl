@@ -5,7 +5,8 @@
 
 -ifdef (MAP_BEHAVIOR_EXPORTS).
 
--export ([map_values/1,
+-export ([fetch/1,
+          map_values/1,
           put/2]).
 
 -endif.
@@ -19,6 +20,7 @@
 
 -ifdef (MAP_BEHAVIOR_SPECS).
 
+-spec fetch (any()) -> {ok, any()} | undefined.
 -spec put (any(), any()) -> b_map:map().
 -spec map_values (b_map:map_values_fun()) -> b_map:map().
 

@@ -1,10 +1,10 @@
 %%% ==========================================================================
 %%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
-%%% @since 2011-03-17
-%%% @doc Erlang Standard Collection List Implementation.
+%%% @since 2011-03-18
+%%% @doc Erlang Standard Map implemented as gb_tree
 %%% @end
 %%% ==========================================================================
--module(i_map_dict, [Dict]).
+-module  (i_map_gb_tree, [Tree]).
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
 -include ("vsn").
 
@@ -63,10 +63,10 @@
 %%% ============================================================================
 
 new () ->
-  instance(dict:new()).
+  instance(gb_trees:empty()).
 
 new (List) when is_list(List) ->
-  new(dict:from_list(List));
+  new(gb_trees:from_orddict(List));
 new (D) ->
   instance(D).
 
@@ -74,85 +74,77 @@ all (Pred) when is_function(Pred) ->
   fold(fun (Item, Bool) -> Bool andalso Pred(Item) end, true).  
 
 any (Pred) when is_function(Pred) ->
-  lists:any(Pred, dict:to_list(Dict)).
+  lists:any(Pred, gb_trees:to_list(Tree)).
 
 at (Key) ->
-  case dict:find(Key, Dict) of
-    {ok, Value} -> Value;
-    error       -> exit(badarg)
-  end.
+  gb_trees:get(Key, Tree).
 
 delete (Item = {Key, _Value}) ->
-  case has(Item) of
-    true  -> new(dict:erase(Key, Dict));
-    false -> THIS
-  end;
+  delete(Key);
 delete (Key) ->
-  new(dict:erase(Key, Dict)).
-
-extend (Dict2) ->
-  merge(fun (_, _) -> exit(badarg) end, Dict2).
+  new(gb_trees:delete_any(Key, Tree)).
+      
+extend (Tree2) ->
+  merge(fun (_, _) -> exit(badarg) end, Tree2).
 
 fetch (Key) ->
-  case dict:find(Key, Dict) of
+  case gb_trees:lookup(Key, Tree) of
     none -> undefined;
-    {ok, V} -> {ok, V}
+    {value, V} -> {ok, V}
   end.
 
 filter (Pred) when is_function(Pred) ->
-  new(dict:filter(fun (Key, Value) -> Pred({Key, Value}) end, Dict)).
+  Iter = gb_trees:iterator(Tree),
+  new(filter_loop(Pred, gb_trees:next(Iter), [])).
 
 foreach (Fun) when is_function(Fun) ->
-  lists:foreach(Fun, dict:to_list(Dict)).
+  foreach_loop(Fun, gb_trees:iterator(Tree)).
 
-fold (Fun, Acc) ->
-  dict:fold(fun (Key, Value, Acc0) ->
-                Fun({Key, Value}, Acc0)
-            end, Acc, Dict).
+fold (Fun, Acc) when is_function(Fun) ->
+  fold_loop(Fun, gb_trees:next(Tree), Acc).
 
 has ({Key, Value}) ->
-  case dict:find(Key, Dict) of
+  case fetch(Key) of
     {ok, Value}  -> true;
     {ok, _Other} -> false;
-    error        -> false
+    undefined    -> false
   end;
 has (Key) ->
-  dict:is_key(Key, Dict).
+  gb_trees:is_defined(Key, Tree).
 
 is_empty () ->
-  dict:size(Dict) == 0.
+  gb_trees:is_empty(Tree).
 
 internals () ->
-  Dict.
+  Tree.
 
 map (Fun) when is_function(Fun) ->
-  new(lists:map(Fun, dict:to_list(Dict))).
+  new(map_loop(Fun, gb_trees:iterator(Tree), [])).
 
 map_values (Fun) when is_function(Fun) ->
-  new(dict:map(Fun, Dict)).
+  new(gb_trees:map(fun (K, V) -> Fun(K, V) end, Tree)).
 
-merge (Fun, Dict2) when is_function(Fun),
-                         element(1, Dict2) =:= ?MODULE ->
-  new(dict:merge(fun (K, V, V2) -> Fun({K, V}, V2) end, Dict, Dict2:internals()));
-merge (Fun, Dict2) when is_function(Fun) ->
-  try dict:size(Dict2) of
-    0 -> THIS;
-    _ -> new(dict:merge(fun (K, V, V2) -> Fun({K, V}, V2) end, Dict, Dict2)) 
-  catch
-    _:R -> exit({badarg, R})
-  end.
+merge (Fun, Tree2) when is_function(Fun),
+                         element(1, Tree2) =:= ?MODULE ->
+  exit(not_implemented);
+merge (Fun, Tree2) when is_function(Fun) ->
+  exit(not_implemented).
 
 put ({Key, Value}) ->
-  new(dict:store(Key, Value, Dict)).
+  case fetch(Key) of
+    {ok, Value} -> THIS;
+    {ok, _}     -> new(gb_trees:update(Key, Value, Tree));
+    undefined   -> new(gb_trees:insert(Key, Value, Tree))
+  end.
 
 put (Key, Value) ->
   put({Key, Value}).
 
 size () ->
-  dict:size(Dict).
+  gb_trees:size(Tree).
 
 to_erlang () ->
-  Dict.
+  Tree.
 
 to_map () ->
   THIS.
@@ -160,3 +152,28 @@ to_map () ->
 %%% ============================================================================
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
+
+filter_loop (_, none, NewTree) ->
+  NewTree;
+filter_loop (Pred, {Key, Val, Iter}, Tree1) ->
+  Tree2 = case Pred(Item = {Key, Val}) of
+            true  -> [Item | Tree1]; 
+            false -> Tree1
+          end,
+  filter_loop(Pred, gb_trees:next(Iter), Tree2).
+
+foreach_loop (_, none) ->
+  ok;
+foreach_loop (Fun, {Key, Val, Iter}) ->
+  Fun({Key, Val}),
+  foreach_loop(Fun, gb_trees:next(Iter)).
+
+fold_loop (_, none, Acc) ->
+  Acc;
+fold_loop (Fun, {Key, Val, Iter}, Acc) ->
+  fold_loop(Fun, gb_trees:next(Iter), Fun({Key, Val}, Acc)).
+
+map_loop (_, none, NewTree) ->
+  NewTree;
+map_loop (Fun, {Key, Val, Iter}, Tree1) ->
+  filter_loop(Fun, gb_trees:next(Iter), [Fun({Key, Val}) | Tree1]).
