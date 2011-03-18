@@ -30,16 +30,12 @@
          test_is_empty/1]).
 
 -export([test_foreach/2,         
-         test_fold/2,
          test_map/2,
+         test_fold/2,
          test_filter/2,
          test_any/2,
          test_all/2,
-         %test_put/2,
-         test_delete/2
-         %test_has/2,
-         %test_is_empty/2
-         ]).
+         test_delete/2]).
 
 
 -export ([test_collection/4,
@@ -69,19 +65,8 @@ init_per_suite(Config) ->
 end_per_suite (_Config) ->    
     ok.
 
-init_per_group (collections, Config) ->
-  [{mutation_arg, -1000},
-   {has_arg, 500},
-   {foreach_fun, fun(Item) -> put(acc, get(acc) + Item) end},
-   {pred_fun, fun (I) -> I =< 500 end},
-   {trav_fun, fun (I) -> I + 1 end},
-   {fold_fun, fun
-                (acc, _) -> 0;
-                (I, Acc) -> Acc + I 
-              end} | Config];
 init_per_group (_, Config) ->
   Config.
-
 end_per_group (_, _) ->
   ok.
 
@@ -103,7 +88,7 @@ test_foreach (Config) ->
 
 test_foreach (_, Config) ->
   F = fun (A, B, C) ->
-          put(acc, 0),
+          put(acc, (?config(fold_fun, Config))(acc, ok)),
           apply(A, B, C),
           get(acc)
       end,
@@ -113,7 +98,7 @@ test_fold (Config) ->
   do_specific_test(test_fold, Config).
 
 test_fold (_, Config) ->
-  test_reduce(Config, {fold, foldl}).
+  test_reduce(Config, fold).
 
 test_map (Config) ->
   do_specific_test(test_map, Config).
@@ -148,9 +133,6 @@ test_delete (Config) ->
 
 test_delete (_, Config) ->
   test_mutation(Config, delete).
-
-test_size (Config) ->
-  do_specific_test(test_size, Config).
 
 test_has (Config) ->
   do_specific_test(test_has, Config).
@@ -199,7 +181,7 @@ test_collection (Config, Function, FunKey, ResultFun) ->
                    {RFun1(Collection, Fun1, AFun(Fun)),
                     RFun2(ErlMod, Fun2, AFun(Fun) ++ [Samples])}
                end,
-  Result     = Expected.
+  true = (Result =:= Expected).
   
 test_predicate (Config, Function) ->
   test_collection(Config, Function, pred_fun, std).

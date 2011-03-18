@@ -1,29 +1,27 @@
 %%% ==========================================================================
 %%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
-%%% @since 2011-03-18
-%%% @doc TODO: Add description to i_ordered_suite
+%%% @since 2011-03-17
+%%% @doc Erlang Standard Map Behavior. 
 %%% @end
 %%% ==========================================================================
--module  (i_ordered_suite).
+-module  (b_map).
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
--extends (i_collection_suite).
+-include ("vsn").
 
 %%% --------------------------------------------------------------------
 %%% C l i e n t  A P I  E x p o r t s
 %%% --------------------------------------------------------------------
 
--include_lib ("common_test/include/ct.hrl").
-
--export ([all/0,
-          groups/0]).
+-export ([behaviour_info/1]).
 
 %%% --------------------------------------------------------------------
 %%% I n t e r n a l  e x p o r t s
 %%% --------------------------------------------------------------------
 
--export ([test_reverse/1,
-          test_foldl/1,
-          test_foldr/1]).
+-define (MAP_BEHAVIOR_TYPES, true).
+-define (MAP_BEHAVIOR_EXPORTS, true).
+-define (MAP_BEHAVIOR_SPECS, true).
+-include ("estdcoll/include/map.hrl").
 
 %%% --------------------------------------------------------------------
 %%% M a c r o s
@@ -37,24 +35,16 @@
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s
 %%% ============================================================================
 
-groups () ->
-  ?BASE_MODULE:groups() ++ [{ordered, [parallel], [{group, collections},
-                                                     test_reverse,
-                                                     test_foldl,
-                                                     test_foldr]}].
-
-all() ->
-    [{group, ordered}]. 
+behaviour_info (callbacks) ->
+  Mine = [{put,  2}],
+  estdcoll:inherit_behavior(b_collection, Mine);
+behaviour_info (_) ->
+  undefined.
 
 %%% ============================================================================
-%%% L o c a l  F u n c t i o n s
+%%% B e h a v i o r  F u n c t i o n s
 %%% ============================================================================
 
-test_foldl (Config) ->
-  ?BASE_MODULE:test_reduce(Config, foldl).
+put (_, _) -> ?MODULE.
+map_values (_) -> ?MODULE.
 
-test_foldr (Config) ->
-  ?BASE_MODULE:test_reduce(Config, foldr).
-
-test_reverse (Config) ->
-  ?BASE_MODULE:test_fun0(Config, reverse).
