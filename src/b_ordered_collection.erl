@@ -1,11 +1,11 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc Erlang Standard Ordered Collection Behavior. 
 %%% @end
 %%% ==========================================================================
 -module  (b_ordered_collection).
--author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
+-author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
 %%% --------------------------------------------------------------------
@@ -18,8 +18,9 @@
 %%% I n t e r n a l  e x p o r t s
 %%% --------------------------------------------------------------------
 
--define (ORDERED_COLLECTION_BEHAVIOR_INT, true).
--define (ORDERED_COLLECTION_BEHAVIOR_IMP, true).
+-define (ORDERED_COLLECTION_BEHAVIOR_SPECS, true).
+-define (ORDERED_COLLECTION_BEHAVIOR_TYPES, true).
+-define (ORDERED_COLLECTION_BEHAVIOR_EXPORTS, true).
 -include ("estdcoll/include/random_access_collection.hrl").
 -include ("estdcoll/include/ordered_collection.hrl").
 
@@ -34,6 +35,8 @@
 %%% ============================================================================
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s
 %%% ============================================================================
+
+-spec behaviour_info (callbacks) -> estdcoll:behavior_list().
 
 behaviour_info (callbacks) ->
   Mine = [{append,  1},

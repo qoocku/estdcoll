@@ -1,5 +1,5 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc TODO: Add description to b_random_access_collection
 %%% @end

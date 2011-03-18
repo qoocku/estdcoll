@@ -1,11 +1,11 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc Erlang Standard Collection List Implementation.
 %%% @end
 %%% ==========================================================================
 -module(i_map_dict, [Dict]).
--author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
+-author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
 -behavior (b_map).
@@ -28,6 +28,7 @@
 -define (STRICT_COLLECTION_BEHAVIOR_EXPORTS, true).
 -define (MAP_BEHAVIOR_SPECS, true).
 -define (MAP_BEHAVIOR_EXPORTS, true).
+
 -include_lib ("estdcoll/include/strict_collection.hrl").
 -include_lib ("estdcoll/include/random_access_collection.hrl").
 -include_lib ("estdcoll/include/map.hrl").

@@ -1,5 +1,5 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-18
 %%% @doc Erlang Standard Map implemented as gb_tree
 %%% @end
@@ -124,10 +124,13 @@ map (Fun) when is_function(Fun) ->
 map_values (Fun) when is_function(Fun) ->
   new(gb_trees:map(fun (K, V) -> Fun(K, V) end, Tree)).
 
-merge (Fun, Tree2) when is_function(Fun),
+merge (Fun, Tree2) when is_function(Fun) andalso
+                         is_tuple(Tree2) andalso
                          element(1, Tree2) =:= ?MODULE ->
   exit(not_implemented);
-merge (Fun, Tree2) when is_function(Fun) ->
+merge (Fun, Tree2) when is_function(Fun) andalso
+                         is_tuple(Tree2) andalso 
+                         element(1, Tree2) =:= gb_tree ->
   exit(not_implemented).
 
 put ({Key, Value}) ->

@@ -90,10 +90,16 @@ test_filter (gb_trees, Config) ->
   ?BASE_MODULE:test_collection(Config, filter, pred_fun,
                                  {std, 
                                   fun (A, B, C) ->
-                                    lists:sort(((apply(A, B, C)):to_erlang()):to_list())
-                                  end, fun (gb_trees, filter, [P, D]) -> 
-                                          lists:sort((lists:filter(P, gb_trees:to_list(D))))
-                                        end}).
+                                    X = apply(A, B, C),
+                                    Y = X:to_erlang(),
+                                    Z = gb_trees:to_list(Y),
+                                    lists:sort(Z)
+                                  end,
+                                  fun (gb_trees, filter, [P, D]) ->
+                                    L1 = gb_trees:to_list(D),
+                                    L2 = lists:filter(P, L1),
+                                    lists:sort(L2)
+                                  end}).
 
 test_fold (gb_trees, Config) ->
   ?BASE_MODULE:test_collection(Config, fold, fold_fun,
@@ -144,6 +150,10 @@ test_is_empty (gb_trees, Config) ->
 test_map (gb_trees, Config) ->
   ?BASE_MODULE:test_collection(Config, map, trav_fun, 
                                  {std, 
-                                  fun (A, B, C) -> lists:sort(((apply(A, B, C)):to_erlang()):to_list()) end,
+                                  fun (A, B, C) ->
+                                      X = apply(A, B, C),
+                                      Y = X:to_erlang(),
+                                      Z = gb_trees:to_list(Y),
+                                      lists:sort(Z) end,
                                   fun (gb_trees, map, [F, D]) -> lists:sort((lists:map(F, gb_trees:to_list(D)))) end}).
 

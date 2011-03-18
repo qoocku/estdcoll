@@ -1,11 +1,11 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc Erlang Standard Map Behavior. 
 %%% @end
 %%% ==========================================================================
 -module  (b_map).
--author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
+-author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
 %%% --------------------------------------------------------------------
@@ -49,4 +49,4 @@ behaviour_info (_) ->
 
 put (_, _) -> ?MODULE.
 map_values (_) -> ?MODULE.
-
+fetch (_) -> ?MODULE.

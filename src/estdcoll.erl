@@ -1,11 +1,11 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc Erlang Standard Collection Library Utils.
 %%% @end
 %%% ==========================================================================
 -module  (estdcoll).
--author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
+-author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
 %%% --------------------------------------------------------------------
@@ -36,13 +36,19 @@
 -define (_IB_, (module(), behavior_list()) -> behavior_list();
                ([module()], behavior_list()) -> behavior_list()). 
 -type behavior_list () :: [{atom, non_neg_integer()}].
+-export_type ([behavior_list/0]).
+
+%% @doc Flattens the behavior "inheritance" chain.
+
 -spec inherit_behavior ?_IB_.
--spec inherit_behaviour ?_IB_. 
 
 inherit_behavior (Parent, Mine) when is_atom(Parent) ->
   inherit_behavior ([Parent], Mine);
 inherit_behavior (Parents, Mine) ->
   sets:to_list(sets:from_list(lists:flatten([P:behaviour_info(callbacks) || P <- Parents]) ++ Mine)).
+
+%% @equiv inherit_behavior/2
+-spec inherit_behaviour ?_IB_. 
 
 inherit_behaviour (Parents, Mine) ->
   inherit_behavior(Parents, Mine).

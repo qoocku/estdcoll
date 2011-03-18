@@ -1,11 +1,11 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc Erlang Standard Collection List Implementation.
 %%% @end
 %%% ==========================================================================
 -module(i_collection_list, [List]).
--author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
+-author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
 -behavior (b_ordered_collection).
@@ -137,7 +137,10 @@ prepend (Item) ->
   new([Item | List]).
 
 put (Item) ->
-  prepend(Item).
+  case has(Item) of
+    true  -> THIS;
+    false -> prepend(Item)
+  end.
 
 reverse () ->
   new(lists:reverse(List)).

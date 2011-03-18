@@ -48,7 +48,9 @@
 
 -ifdef (COLLECTION_BEHAVIOR_SPECS).
 
+%% @doc Returns `true' iff the predicate is true for all of the elements.
 -spec all       (b_collection:all_fun()) -> boolean().
+%% @doc Returns `true' iff the predicate is true for any of the elements.
 -spec any       (b_collection:any_fun()) -> boolean().
 -spec delete    (any()) -> b_collection:collection().
 -spec extend    (b_collection:collection()) -> b_collection:collection() | no_return().

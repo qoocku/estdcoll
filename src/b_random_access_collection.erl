@@ -1,7 +1,8 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc TODO: Add description to b_random_access_collection
+%%% @headerfile "estdcoll/include/random_access_collection.hrl"
 %%% @end
 %%% ==========================================================================
 -module  (b_random_access_collection).
@@ -13,6 +14,9 @@
 %%% --------------------------------------------------------------------
 
 -export ([behaviour_info/1]).
+
+-define (USE_SKELETONS, true).
+-define (USE_SPECS, true).
 
 %%% --------------------------------------------------------------------
 %%% I n t e r n a l  e x p o r t s
@@ -35,6 +39,10 @@
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s
 %%% ============================================================================
 
+%% @doc Returns callbacks needed by implementation of this type of collections.
+
+-spec behaviour_info (callbacks) -> estdcoll:behavior_list().
+
 behaviour_info (callbacks) ->
   estdcoll:inherit_behavior(b_collection, [{at, 1}]);
 behaviour_info (_) ->
@@ -44,4 +52,9 @@ behaviour_info (_) ->
 %%% B e h a v i o r  F u n c t i o n s
 %%% ============================================================================
 
-at (_) -> item.
+%% @doc Gets an item specified by given key. The key may be an index (for indexed sequences
+%%      like lists) or any other term (for mappings). If the item does not exists in the collections
+%%      the function exits with `badarg' value.
+
+at (Key) -> {}.
+

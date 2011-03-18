@@ -1,11 +1,11 @@
 %%% ==========================================================================
-%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
+%%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com>
 %%% @since 2011-03-17
 %%% @doc Erlang Standard Generic Collection Behavior.
 %%% @end
 %%% ==========================================================================
 -module(b_collection).
--author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
+-author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
 %%% --------------------------------------------------------------------
@@ -55,7 +55,7 @@ delete (_) -> ?MODULE.
 extend (_) -> ?MODULE.
 filter (Pred) when is_function(Pred)  -> ?MODULE.
 fold (Fun, _) when is_function(Fun)   -> ok.
-foreach (Fun) when is_function(Fun)    -> ok.
+foreach (Fun) when is_function(Fun)   -> ok.
 has (_)      -> true.
 internals () -> {}.
 is_empty ()  -> true.
