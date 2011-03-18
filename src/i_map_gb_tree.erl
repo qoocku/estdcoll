@@ -98,10 +98,10 @@ filter (Pred) when is_function(Pred) ->
   new(filter_loop(Pred, gb_trees:next(Iter), [])).
 
 foreach (Fun) when is_function(Fun) ->
-  foreach_loop(Fun, gb_trees:iterator(Tree)).
+  foreach_loop(Fun, gb_trees:next(gb_trees:iterator(Tree))).
 
 fold (Fun, Acc) when is_function(Fun) ->
-  fold_loop(Fun, gb_trees:next(Tree), Acc).
+  fold_loop(Fun, gb_trees:next(gb_trees:iterator(Tree)), Acc).
 
 has ({Key, Value}) ->
   case fetch(Key) of
@@ -119,7 +119,7 @@ internals () ->
   Tree.
 
 map (Fun) when is_function(Fun) ->
-  new(map_loop(Fun, gb_trees:iterator(Tree), [])).
+  new(map_loop(Fun, gb_trees:next(gb_trees:iterator(Tree)), [])).
 
 map_values (Fun) when is_function(Fun) ->
   new(gb_trees:map(fun (K, V) -> Fun(K, V) end, Tree)).
@@ -176,4 +176,4 @@ fold_loop (Fun, {Key, Val, Iter}, Acc) ->
 map_loop (_, none, NewTree) ->
   NewTree;
 map_loop (Fun, {Key, Val, Iter}, Tree1) ->
-  filter_loop(Fun, gb_trees:next(Iter), [Fun({Key, Val}) | Tree1]).
+  map_loop(Fun, gb_trees:next(Iter), [Fun({Key, Val}) | Tree1]).
