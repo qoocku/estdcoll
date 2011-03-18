@@ -18,7 +18,7 @@
           init_per_testcase/2,
           end_per_testcase/2]).
 
--export([test_foreach/1,
+-export([test_foreach/1,         
          test_fold/1,
          test_map/1,
          test_filter/1,
@@ -29,13 +29,27 @@
          test_has/1,
          test_is_empty/1]).
 
+-export([test_foreach/2,         
+         test_fold/2,
+         test_map/2,
+         test_filter/2,
+         test_any/2,
+         test_all/2,
+         %test_put/2,
+         test_delete/2
+         %test_has/2,
+         %test_is_empty/2
+         ]).
+
+
 -export ([test_collection/4,
           test_fun0/2,
           test_mutation/2,
           test_predicate/2,
           test_reduce/2,
           test_traverse/2,
-          do_specific_test/2]).
+          do_specific_test/2,
+          do_specific_test/3]).
 
 groups () ->
   [{collections, [parallel], [test_foreach,
@@ -85,6 +99,9 @@ all() ->
 %% --------------------------------------------------------------------
 
 test_foreach (Config) ->
+  do_specific_test(test_foreach, Config).
+
+test_foreach (_, Config) ->
   F = fun (A, B, C) ->
           put(acc, 0),
           apply(A, B, C),
@@ -93,25 +110,43 @@ test_foreach (Config) ->
   test_collection(Config, foreach, foreach_fun, {std, F, F}).
 
 test_fold (Config) ->
+  do_specific_test(test_fold, Config).
+
+test_fold (_, Config) ->
   test_reduce(Config, {fold, foldl}).
 
 test_map (Config) ->
+  do_specific_test(test_map, Config).
+
+test_map (_, Config) ->
   test_traverse(Config, map).
 
 test_filter (Config) ->
+  do_specific_test(test_filter, Config).
+
+test_filter (_, Config) ->
   test_collection(Config, filter, pred_fun,
                   {std, fun (A, B, C) -> (apply(A, B, C)):to_erlang() end, std}).
 
 test_all (Config) ->
+  do_specific_test(test_all, Config).
+
+test_all (_, Config) ->
   test_predicate(Config, all).
 
 test_any (Config) ->
+  do_specific_test(test_any, Config).
+
+test_any (_, Config) ->
   test_predicate(Config, any).
 
 test_put (Config) ->
   do_specific_test(test_put, Config).
 
 test_delete (Config) ->
+  do_specific_test(test_delete, Config).
+
+test_delete (_, Config) ->
   test_mutation(Config, delete).
 
 test_size (Config) ->
@@ -126,7 +161,14 @@ test_is_empty (Config) ->
 %%% ------- local functions --------
 
 do_specific_test (Test, Config) ->
-  (?config({specific, Test}, Config))(?config(erl_mod, Config), Config).
+  do_specific_test(Test, Config, fun (_, Cfg) -> ?MODULE:Test(undefined, Cfg) end).
+
+do_specific_test (Test, Config, Default) ->
+  ErlMod = ?config(erl_mod, Config),
+  case ?config({specific, Test}, Config) of
+    undefined -> Default(ErlMod, Config);
+    Fun       -> Fun(ErlMod, Config)
+  end.
 
 test_collection (Config, Function, FunKey, ResultFun) ->
   {Fun1, Fun2} = case Function of
