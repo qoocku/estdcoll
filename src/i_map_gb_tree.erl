@@ -139,6 +139,10 @@ merge (Fun, Tree2) when is_function(Fun) andalso
                          is_tuple(Tree2) andalso
                          element(1, Tree2) =:= ?MODULE ->
   merge(Fun, Tree2:to_erlang());
+merge (Fun, Iter) when is_function(Fun) andalso
+                         is_tuple(Iter) andalso
+                         element(1, Iter) =:= i_iterator_gb_tree ->
+  new(merge_loop(Fun, gb_trees:next(Iter), Tree));
 merge (Fun, Tree2) when is_function(Fun) andalso
                          is_tuple(Tree2) ->
   {Src, Tgt} = case size() > gb_trees:size(Tree2) of
