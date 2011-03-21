@@ -85,8 +85,9 @@ new (I, T, N) when is_function(T) andalso
                    (is_atom(N) orelse is_tuple(N)) ->
   instance(iterator, I, T, N).
 
--define (GET_ITER(I), Iter).
--define (EMPTY_ITER, none).
+-define (IS_EMPTY_ITER(I), I =:= none).
+-define (EMPTY_PATTERN, none).
+-define (EMPTY_ITER_PATTERN, none).
 -define (IMP_ALL, true).
 -include ("estdcoll/src/estdcoll_iterator_imp.hrl").
 

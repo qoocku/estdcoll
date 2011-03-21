@@ -16,7 +16,7 @@
 
 -spec next () -> iterator().
 
-next () when ?GET_ITER(Iter) =:= ?EMPTY_ITER ->
+next () when ?IS_EMPTY_ITER(Iter) ->
   exit(bad_iterator);
 next () ->
   {Mod, Fun} = case Next of
@@ -98,6 +98,24 @@ foreach (Fun) when is_function(Fun) ->
 
 partition (Pred) when is_function(Pred) ->
   {filter(Pred), filter(fun (I) -> not Pred(I) end)}.
+
+-endif.
+
+-ifdef (FILTER_NEXT_IMP).
+
+filter_next (_, Iter) when ?IS_EMPTY_ITER(Iter) ->
+  ?EMPTY_ITER;
+filter_next (Oper, I) ->
+  case next_iter(I) of
+    Current = {{K, V}, N} ->
+      case Oper({filter, {K, V}}) of
+        false ->
+          filter_next(Oper, N);
+        true ->
+          Current
+      end;
+    None = ?EMPTY_ITER_PATTERN -> None
+  end.
 
 -endif.
 

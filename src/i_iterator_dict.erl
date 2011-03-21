@@ -22,6 +22,7 @@
 -export ([foreach/1,
           next/0,
           next_iter/1,
+          filter_next/2,
           fold/2,
           map/1,
           partition/1,
@@ -54,9 +55,11 @@ new ({Ks, D}, T, N) when is_function(T) andalso
                          size(N) == 2 ->
   instance(iterator, {Ks, D}, T, N).
 
--define (GET_ITER(I), element(1, I)).
--define (EMPTY_ITER, []).
+-define (IS_EMPTY_ITER(I), element(1, I) =:= []).
+-define (EMPTY_ITER, {[], dict:new()}).
+-define (EMPTY_ITER_PATTERN, {[], _}).
 -define (IMP_ALL, true).
+-define (FILTER_NEXT_IMP, true).
 -include ("estdcoll/src/estdcoll_iterator_imp.hrl").
 
 %%% ============================================================================
