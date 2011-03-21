@@ -37,6 +37,7 @@ behaviour_info (callbacks) ->
    {foreach,   1},
    {has,       1},
    {internals, 0},
+   {iterator,  0},
    {is_empty,  0},
    {map,       1},
    {merge,     2},
@@ -58,6 +59,7 @@ fold (Fun, _) when is_function(Fun)   -> ok.
 foreach (Fun) when is_function(Fun)   -> ok.
 has (_)      -> true.
 internals () -> {}.
+iterator () -> ?MODULE.
 is_empty ()  -> true.
 map (Fun) when is_function(Fun)      -> ?MODULE.
 merge (Fun, _) when is_function(Fun) -> ?MODULE.

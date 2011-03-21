@@ -4,7 +4,7 @@
 %%% @doc Erlang Standard Map implemented as gb_tree
 %%% @end
 %%% ==========================================================================
--module  (i_map_gb_tree, [Tree]).
+-module  (i_map_gb_tree, [Type, Tree]).
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
 -include ("vsn").
 
@@ -44,6 +44,7 @@
                     {has, 1},
                     {is_empty, 0},
                     {internals, 0},
+                    {iterator, 0},
                     {map, 1},
                     {merge, 2},
                     {put,   1},
@@ -64,12 +65,12 @@
 %%% ============================================================================
 
 new () ->
-  instance(gb_trees:empty()).
+  new(gb_trees:empty()).
 
 new (List) when is_list(List) ->
   new(gb_trees:from_orddict(List));
 new (D) ->
-  instance(D).
+  instance(map, D).
 
 all (Pred) when is_function(Pred) ->
   fold(fun (Item, Bool) -> Bool andalso Pred(Item) end, true).  
@@ -129,6 +130,9 @@ is_empty () ->
 internals () ->
   Tree.
 
+iterator () ->
+  i_iterator_gb_tree:new(gb_trees:iterator()).
+
 map (Fun) when is_function(Fun) ->
   new(map_loop(Fun, gb_trees:next(gb_trees:iterator(Tree)), [])).
 
@@ -141,8 +145,8 @@ merge (Fun, Tree2) when is_function(Fun) andalso
   merge(Fun, Tree2:to_erlang());
 merge (Fun, Iter) when is_function(Fun) andalso
                          is_tuple(Iter) andalso
-                         element(1, Iter) =:= i_iterator_gb_tree ->
-  new(merge_loop(Fun, gb_trees:next(Iter), Tree));
+                         element(2, Iter) =:= iterator ->
+  new(merge_iterator_loop(Fun, Iter, Tree));
 merge (Fun, Tree2) when is_function(Fun) andalso
                          is_tuple(Tree2) ->
   {Src, Tgt} = case size() > gb_trees:size(Tree2) of
@@ -150,8 +154,13 @@ merge (Fun, Tree2) when is_function(Fun) andalso
                  false -> {Tree, Tree2}
                end,
   new(merge_loop(Fun, gb_trees:next(gb_trees:iterator(Src)), Tgt));
-merge (Fun, Collection) when is_function(Fun) ->
-  estdcoll:merge(Collection, THIS).
+merge (Fun, Collection) when is_function(Fun) andalso 
+                             is_tuple(Collection) ->
+  try Collection:iterator() of
+    Iter -> new(merge_iterator_loop(Fun, Iter, Tree))
+  catch
+    _:_ -> exit(badarg)
+  end.
 
 put ({Key, Value}) ->
   case THIS:get(Key) of
@@ -201,6 +210,25 @@ map_loop (_, none, NewTree) ->
 map_loop (Fun, {Key, Val, Iter}, Tree1) ->
   map_loop(Fun, gb_trees:next(Iter), [Fun({Key, Val}) | Tree1]).
 
+merge_iterator_loop (Fun, Iter, Tree1) ->
+  try Iter:next() of
+    {{Key, Val}, Next} ->
+      NewTree = try gb_trees:get(Key, Tree1) of
+                    Val  -> pass;
+                    Val2 -> catch {ok, gb_trees:update(Key, Fun({Key, Val}, Val2), Tree1)} 
+                catch
+                  _:_ -> {ok, gb_trees:insert(Key, Val, Tree1)}
+                end,        
+      case NewTree of
+        pass    -> merge_iterator_loop(Fun, Next, Tree1);
+        {ok, T} -> merge_iterator_loop(Fun, Next, T);
+        _Other  -> exit(badarg)
+      end
+  catch
+    exit:bad_iterator ->
+      Tree1
+  end.
+      
 merge_loop (_, none, NewTree) ->
   NewTree;
 merge_loop (Fun, {Key, Val, Iter}, Tree1) ->

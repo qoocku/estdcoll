@@ -4,7 +4,7 @@
 %%% @doc Erlang Standard Collection List Implementation.
 %%% @end
 %%% ==========================================================================
--module(i_map_dict, [Dict]).
+-module(i_map_dict, [Type, Dict]).
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
@@ -45,6 +45,7 @@
                     {has, 1},
                     {is_empty, 0},
                     {internals, 0},
+                    {iterator, 0},
                     {map, 1},
                     {merge, 2},
                     {put,   1},
@@ -65,12 +66,12 @@
 %%% ============================================================================
 
 new () ->
-  instance(dict:new()).
+  new(dict:new()).
 
 new (List) when is_list(List) ->
   new(dict:from_list(List));
 new (D) ->
-  instance(D).
+  instance(map, D).
 
 all (Pred) when is_function(Pred) ->
   fold(fun (Item, Bool) -> Bool andalso Pred(Item) end, true).  
@@ -127,21 +128,40 @@ is_empty () ->
 internals () ->
   Dict.
 
+iterator () ->
+  i_iterator_dict:new(Dict).
+
 map (Fun) when is_function(Fun) ->
   new(lists:map(Fun, dict:to_list(Dict))).
 
 map_values (Fun) when is_function(Fun) ->
-  new(dict:map(Fun, Dict)).
+  new(dict:map(fun (K, V) -> Fun({K, V}) end, Dict)).
 
-merge (Fun, Dict2) when is_function(Fun),
-                         element(1, Dict2) =:= ?MODULE ->
+merge (Fun, Dict2) when is_function(Fun) andalso
+                        is_tuple(Dict2) andalso
+                        element(1, Dict2) =:= ?MODULE ->
   new(dict:merge(fun (K, V, V2) -> Fun({K, V}, V2) end, Dict, Dict2:internals()));
-merge (Fun, Dict2) when is_function(Fun) ->
+merge (Fun, Dict2) when is_function(Fun) andalso
+                        is_tuple(Dict2) andalso 
+                        element(1, Dict2) =:= dict ->
   try dict:size(Dict2) of
     0 -> THIS;
     _ -> new(dict:merge(fun (K, V, V2) -> Fun({K, V}, V2) end, Dict, Dict2)) 
   catch
     _:R -> exit({badarg, R})
+  end;
+merge (Fun, Iter) when is_function(Fun) andalso
+                       is_tuple(Iter) andalso 
+                       element(2, Iter) =:= iterator ->
+  new(dict:merge(fun (K, V, V2) -> Fun({K, V}, V2) end,
+                 Dict, 
+                 dict:from_list(estdcoll_iterators:iterator_to_list(Iter))));
+merge (Fun, Collection) when is_function(Fun) andalso
+                       is_tuple(Collection) ->
+  try Collection:iterator() of
+    Iter -> merge(Fun, Iter)
+  catch
+    _:_ -> exit(badarg)
   end.
 
 put ({Key, Value}) ->

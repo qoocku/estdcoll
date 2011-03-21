@@ -12,6 +12,7 @@
           foreach  /1,
           has      /1,
           internals/0,
+          iterator /0,
           is_empty /0,
           map      /1,
           merge    /2,
@@ -23,7 +24,7 @@
 -ifdef (COLLECTION_BEHAVIOR_TYPES).
 
 -type internals   () :: any().
--type collection  () :: module().
+-opaque collection  () :: module().
 -type acc         () :: any().
 -type predicate   () :: fun ((any()) -> boolean()).
 -type all_fun     () :: predicate().
@@ -32,6 +33,7 @@
 -type fold_fun    () :: fun ((any(), acc()) -> acc()).
 -type trav_fun    () :: fun ((any()) -> any()).
 -type merge_fun   () :: fun ((any(), any()) -> any()).
+-opaque iterator  () :: module().
 
 -export_type ([acc/0,
                all_fun/0,
@@ -60,6 +62,7 @@
 -spec foreach   (b_collection:trav_fun()) -> any().
 -spec has       (any()) -> boolean().
 -spec internals () -> b_collection:internals().
+-spec iterator  () -> b_collection:iterator().
 -spec is_empty  () -> boolean(). 
 -spec map       (b_collection:trav_fun()) -> b_collection:collection().
 -spec merge     (b_collection:merge_fun(), b_collection:collection()) -> b_collection:collection().

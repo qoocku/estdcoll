@@ -4,7 +4,7 @@
 %%% @doc Erlang Standard Collection List Implementation.
 %%% @end
 %%% ==========================================================================
--module(i_collection_list, [List]).
+-module(i_collection_list, [Type, List]).
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com>").
 -include ("vsn").
 
@@ -44,6 +44,7 @@
                     {has, 1},
                     {is_empty, 0},
                     {internals, 0},
+                    {iterator, 0},
                     {map, 1},
                     {merge, 2},
                     {put,   1},
@@ -67,7 +68,7 @@ new () ->
   new([]).
 
 new (Xs) when is_list(Xs) ->
-  instance(Xs).
+  instance(list, Xs).
 
 %%% ============================================================================
 %%% B e h a v i o r  F u n c t i o n s
@@ -126,6 +127,9 @@ internals () ->
 
 is_empty () ->
   List =:= [].
+
+iterator () ->
+  i_iterator_list:new(List).
 
 map (Fun) when is_function(Fun) ->
   new([Fun(I) || I <- List]).
