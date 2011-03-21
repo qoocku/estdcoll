@@ -131,7 +131,7 @@ internals () ->
   Tree.
 
 iterator () ->
-  i_iterator_gb_tree:new(gb_trees:iterator()).
+  i_iterator_gb_tree:new(gb_trees:iterator(Tree)).
 
 map (Fun) when is_function(Fun) ->
   new(map_loop(Fun, gb_trees:next(gb_trees:iterator(Tree)), [])).
