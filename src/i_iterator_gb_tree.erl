@@ -31,7 +31,7 @@
 %%% --------------------------------------------------------------------
 
 -export ([filter/1,
-          filter_next/2,
+          filter_next/1,
           foreach/1,
           fold/2,
           next/0,
@@ -95,12 +95,12 @@ new (I, T, N) when is_function(T) andalso
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
 
-filter_next (_, none) ->
+filter_next (none) ->
   none;
-filter_next (Oper, I) ->
+filter_next (I) ->
   case gb_trees:next(I) of
     Current = {K, V, N} -> case Oper({filter, {K, V}}) of
-                             false -> filter_next(Oper, N);
+                             false -> filter_next(N);
                              true  -> Current
                            end;
     none -> none

@@ -23,7 +23,7 @@ next () ->
                  {M, F} -> {M, F};
                  F      -> {THIS, F}
                end,
-  case stdcoll_iterator:do_next({Mod, Fun}, Oper, Next, Iter) of
+  case estdcoll_iterators:do_next({Mod, Fun}, Oper, Iter) of
     {Item, I} ->
       {Item, new(I, Oper, Next)};
     none -> exit(bad_iterator)
@@ -70,7 +70,7 @@ fold (Fun, Acc0) when is_function(Fun) ->
                    {M, F} -> {M, F};
                    F      -> {THIS, F}
                  end,
-  stdcoll_iterator:fold_loop({Mod, Shift}, Fun, Oper, Iter, Acc0).
+  estdcoll_iterators:fold_loop({Mod, Shift}, Fun, Oper, Iter, Acc0).
 
 -endif.
 
@@ -86,7 +86,7 @@ foreach (Fun) when is_function(Fun) ->
                    {M, F} -> {M, F};
                    F      -> {THIS, F}
                  end,
-  stdcoll_iterator:foreach_loop({Mod, Shift}, Fun, Oper).
+  estdcoll_iterators:foreach_loop({Mod, Shift}, Fun, Oper, Iter).
 
 -endif.
 
@@ -103,18 +103,19 @@ partition (Pred) when is_function(Pred) ->
 
 -ifdef (FILTER_NEXT_IMP).
 
-filter_next (_, Iter) when ?IS_EMPTY_ITER(Iter) ->
+filter_next (Iter) when ?IS_EMPTY_ITER(Iter) ->
   ?EMPTY_ITER;
-filter_next (Oper, I) ->
+filter_next (I) ->
   case next_iter(I) of
-    Current = {{K, V}, N} ->
-      case Oper({filter, {K, V}}) of
+    ?EMPTY_ITER_PATTERN -> 
+      none;
+    Current = {Item, N} ->
+      case Oper({filter, Item}) of
         false ->
-          filter_next(Oper, N);
+          filter_next(N);
         true ->
           Current
-      end;
-    None = ?EMPTY_ITER_PATTERN -> None
+      end
   end.
 
 -endif.

@@ -9,7 +9,7 @@
 
 do_next ({Mod, Fun}, Oper, I) ->
   case apply(Mod, Fun, [I]) of
-    {K, V, N} -> {Oper({K, V}), N};
+    {Item, N} -> {Oper(Item), N};
     none      -> none
   end.
 

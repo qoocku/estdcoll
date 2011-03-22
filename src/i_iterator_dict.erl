@@ -22,7 +22,7 @@
 -export ([foreach/1,
           next/0,
           next_iter/1,
-          filter_next/2,
+          filter_next/1,
           fold/2,
           map/1,
           partition/1,

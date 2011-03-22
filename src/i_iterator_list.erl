@@ -22,7 +22,7 @@
 -export ([foreach/1,
           next/0,
           next_iter/1,
-          filter_next/2,
+          filter_next/1,
           fold/2,
           map/1,
           partition/1,
@@ -51,8 +51,8 @@ new (L, T) when is_list(L) andalso is_function(T) ->
 
 new (L, T, N) when is_function(T) andalso
                    is_list(L) andalso 
-                   is_atom(N) andalso
-                   size(N) == 2 ->
+                   (is_atom(N) orelse
+                                 (is_tuple(N) andalso size(N) == 2)) ->
   instance(iterator, L, T, N).
 
 -define (IS_EMPTY_ITER(I), I =:= []).
@@ -69,4 +69,9 @@ new (L, T, N) when is_function(T) andalso
 -spec next_iter(repr()) -> repr().
 
 next_iter (List) ->
-  {hd(List), tl(List)}.
+  try
+    {hd(List), tl(List)}
+  catch
+    _:_ ->
+      []
+  end. 
