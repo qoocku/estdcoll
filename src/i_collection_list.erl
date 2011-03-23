@@ -125,6 +125,15 @@ has (Item) ->
 internals () ->
   List.
 
+isa (collection) ->
+  true;
+isa (ordered) ->
+  true;
+isa (random_access) ->
+  true;
+isa (_) ->
+  false.
+
 is_empty () ->
   List =:= [].
 

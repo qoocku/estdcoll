@@ -18,7 +18,7 @@
 %%% R e c o r d s ,  T y p e s  a n d  S p e c s
 %%% --------------------------------------------------------------------
 
--define (COLLECTION_BEHAVIOR_EXPORT, true).
+-define (COLLECTION_BEHAVIOR_EXPORTS, true).
 -define (COLLECTION_BEHAVIOR_TYPES, true).
 -define (COLLECTION_BEHAVIOR_SPECS, true).
 -include ("estdcoll/include/collection.hrl").
@@ -38,6 +38,7 @@ behaviour_info (callbacks) ->
    {has,       1},
    {internals, 0},
    {iterator,  0},
+   {isa,       1},
    {is_empty,  0},
    {map,       1},
    {merge,     2},
@@ -61,6 +62,7 @@ has (_)      -> true.
 internals () -> {}.
 iterator () -> ?MODULE.
 is_empty ()  -> true.
+isa (Type) when is_atom(Type) -> true.
 map (Fun) when is_function(Fun)      -> ?MODULE.
 merge (Fun, _) when is_function(Fun) -> ?MODULE.
 put (_) -> ?MODULE.

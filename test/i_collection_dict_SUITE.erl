@@ -30,13 +30,15 @@ suite() ->
   [{timetrap, {minutes,1}}].  
 
 groups () ->
-  ?BASE_MODULE:groups() ++ [{dict, [parallel], [{group, map_as_collection}]}].
+  ?BASE_MODULE:groups() 
+    ++ [{dict, [parallel], [{group, map_as_collection}]}]
+    ++ [{orddict, [parallel], [{group, map_as_collection}]}].
 
-init_per_group (dict, Config) ->
-  Samples = dict:from_list(lists:zip(lists:seq(1, 1000), lists:seq(1000, 1, -1))),
-  [{collection, i_map_dict:new(Samples)},
+init_per_group (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
+  Samples = Mod:from_list(lists:zip(lists:seq(1, 1000), lists:seq(1000, 1, -1))),
+  [{collection, i_map_dict:new(Mod, Samples)},
    {samples, Samples},
-   {erl_mod, dict},
+   {erl_mod, Mod},
    {{specific, test_all}, fun test_all/2},
    {{specific, test_any}, fun test_any/2},
    {{specific, test_delete}, fun test_delete/2},
@@ -52,61 +54,63 @@ init_per_group (Group, Config) ->
   ?BASE_MODULE:init_per_group(Group, Config).
 
 all() ->
-    [{group, dict}]. 
+    [{group, dict}, {group, orddict}]. 
 
 %% --------------------------------------------------------------------
 %% TEST CASES
 %% --------------------------------------------------------------------
 
-test_all (dict, Config) ->
+test_all (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, all, pred_fun,
-                                 {std, std, fun (dict, all, [P, D]) -> 
-                                                lists:all(P, dict:to_list(D))
+                                 {std, std, fun (M, all, [P, D]) -> 
+                                                lists:all(P, M:to_list(D))
                                             end}).
 
-test_any (dict, Config) ->
+test_any (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, any, pred_fun,
-                                 {std, std, fun (dict, any, [P, D]) -> 
-                                                lists:any(P, dict:to_list(D))
+                                 {std, std, fun (M, any, [P, D]) -> 
+                                                lists:any(P, M:to_list(D))
                                             end}).
 
-test_at (dict, Config) ->
-  ?BASE_MODULE:test_collection(Config, at, at_arg, {std, std, fun (dict, at, [K, D]) -> dict:fetch(K, D) end}).
+test_at (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
+  ?BASE_MODULE:test_collection(Config, at, at_arg,
+                               {std, std,
+                                fun (M, at, [K, D]) -> M:fetch(K, D) end}).
 
-test_delete (dict, Config) ->
+test_delete (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, delete, mutation_arg,
                                {std, 
                                 fun (A, B, C) ->
                                     (apply(A, B, C)):to_erlang()
-                                end, fun (dict, delete, [{K, V}, D]) -> 
-                                         case dict:find(K, D) of
-                                           {ok, V} -> dict:erase(K, D);
+                                end, fun (M, delete, [{K, V}, D]) -> 
+                                         case M:find(K, D) of
+                                           {ok, V} -> M:erase(K, D);
                                            error -> D
                                          end
                                 end}).
 
-test_filter (dict, Config) ->
+test_filter (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, filter, pred_fun,
-                                 {std, 
-                                  fun (A, B, C) ->
+                               {std, 
+                                fun (A, B, C) ->
                                     (apply(A, B, C)):to_erlang()
-                                  end, fun (dict, filter, [P, D]) -> 
-                                          dict:filter(fun (K, V) -> P({K, V}) end, D)
-                                        end}).
+                                end, fun (M, filter, [P, D]) -> 
+                                         M:filter(fun (K, V) -> P({K, V}) end, D)
+                                     end}).
 
-test_fold (dict, Config) ->
+test_fold (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, fold, fold_fun,
                                  {fun (F) -> [F, F(acc, ok)] end, 
                                   std,
-                                  fun (dict, fold, [F, A, D]) ->
-                                    dict:fold(fun (K, V, Acc) -> F({K, V}, Acc) end, A, D)
+                                  fun (M, fold, [F, A, D]) ->
+                                    M:fold(fun (K, V, Acc) -> F({K, V}, Acc) end, A, D)
                                   end}).
 
-test_foreach (dict, Config) ->
+test_foreach (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   F = fun
-        (dict, foreach, [F, D]) ->
+        (M, foreach, [F, D]) ->
           put(acc, (?config(fold_fun, Config))(acc, ok)),
-          lists:foreach(F, dict:to_list(D)),
+          lists:foreach(F, M:to_list(D)),
           get(acc);       
         (A, B, C) ->
           put(acc, (?config(fold_fun, Config))(acc, ok)),
@@ -115,15 +119,15 @@ test_foreach (dict, Config) ->
       end,
   ?BASE_MODULE:test_collection(Config, foreach, foreach_fun, {std, F, F}).
 
-test_put (dict, Config) ->
+test_put (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, put, mutation_arg,
                                {std,
                                 fun (A, B, C) -> (apply(A, B, C)):to_erlang() end,
-                                fun (dict, put, [{K, V}, D]) -> dict:store(K, V, D) end}).
+                                fun (M, put, [{K, V}, D]) -> M:store(K, V, D) end}).
 
-test_has (dict, Config) ->
-  Has = fun (dict, has, [{K, V}, D]) ->
-            case dict:find(K, D) of
+test_has (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
+  Has = fun (M, has, [{K, V}, D]) ->
+            case M:find(K, D) of
               error -> false;
               {ok, V} -> true;
               {ok, _} -> false
@@ -131,14 +135,19 @@ test_has (dict, Config) ->
         end,
   ?BASE_MODULE:test_collection(Config, has, has_arg, {std, std, Has}).
 
-test_is_empty (dict, Config) ->
+test_is_empty (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, is_empty, undefined,
-                               {std, std, fun (dict, is_empty, [D]) -> dict:size(D) == 0 end}).
+                               {std, std, fun (M, is_empty, [D]) -> M:size(D) == 0 end}).
 
-test_map (dict, Config) ->
+test_map (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
   ?BASE_MODULE:test_collection(Config, map, trav_fun, 
                                  {std, 
-                                  fun (A, B, C) -> (apply(A, B, C)):to_erlang() end,
-                                  fun (dict, map, [F, D]) -> dict:from_list(lists:map(F, dict:to_list(D))) end}).
+                                  fun 
+                                    (A, B, C) -> 
+                                      D1 = (apply(A, B, C)):to_erlang(),
+                                      io:format("D1 = ~p\n", [D1]),
+                                      lists:sort(Mod:to_list(D1)) 
+                                  end,
+                                  fun (M, map, [F, D]) -> lists:sort(lists:map(F, M:to_list(D))) end}).
 
   

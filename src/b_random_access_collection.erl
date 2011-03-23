@@ -56,7 +56,6 @@ behaviour_info (_) ->
 %%      like lists) or any other term (for mappings). If the item does not exists in the collections
 %%      the function exits with `badarg' value.
 
-at (Key) -> {}.
-
-get (Key) -> any.
+at (_) -> {}.
+get (_) -> any.
 

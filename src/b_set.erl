@@ -36,7 +36,10 @@
 %%% ============================================================================
 
 behaviour_info (callbacks) ->
-  Mine = [{merge, 1}],
+  Mine = [{union, 1},
+          {is_disjoint, 1},
+          {intersection, 1},
+          {subtract, 1}],
   estdcoll:inherit_behavior([b_collection,
                              b_strict_collection], Mine);
 behaviour_info (_) ->
@@ -46,4 +49,10 @@ behaviour_info (_) ->
 %%% B e h a v i o r  F u n c t i o n s
 %%% ============================================================================
 
-merge (_) -> ?MODULE.
+union (_) -> ?MODULE.
+intersection (_) ->
+  ?MODULE.
+is_disjoint (_) ->
+  ?MODULE.
+subtract (_) ->
+  ?MODULE.

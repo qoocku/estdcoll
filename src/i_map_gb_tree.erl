@@ -130,6 +130,13 @@ is_empty () ->
 internals () ->
   Tree.
 
+isa (collection) ->
+  true;
+isa (map) ->
+  true;
+isa (_) ->
+  false.
+
 iterator () ->
   i_iterator_gb_tree:new(gb_trees:iterator(Tree)).
 
