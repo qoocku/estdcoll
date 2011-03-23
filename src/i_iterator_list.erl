@@ -73,5 +73,5 @@ next_iter (List) ->
     {hd(List), tl(List)}
   catch
     _:_ ->
-      []
+      none
   end. 
