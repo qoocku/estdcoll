@@ -194,7 +194,7 @@ put (Item) ->
   new(Mod, Mod:add_element(Item, Set)).
 
 size () ->
-  sets:size(Set).
+  Mod:size(Set).
 
 subtract (Set1) when is_tuple(Set) andalso
                      element(1, Set) =:= ?MODULE ->

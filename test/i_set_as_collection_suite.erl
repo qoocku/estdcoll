@@ -5,7 +5,7 @@
 %%% @end
 %%% ==========================================================================
 -module (i_set_as_collection_suite).
--extends (i_collection_suite).
+-extends (i_strict_suite).
 
 -include_lib ("common_test/include/ct.hrl").
 
@@ -15,7 +15,7 @@
 
 
 groups () ->
-  ?BASE_MODULE:groups() ++ [{set_as_collection, [parallel], [{group, collections}]}].
+  ?BASE_MODULE:groups() ++ [{set_as_collection, [parallel], [{group, strict}]}].
 
 init_per_group (set_as_collection, Config) ->  
   [{mutation_arg, -1000},   
