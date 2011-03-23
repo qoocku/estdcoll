@@ -19,7 +19,9 @@
 %%% I n t e r n a l  e x p o r t s
 %%% --------------------------------------------------------------------
 
--export ([foreach/1,
+-export ([all/1,
+          any/1,
+          foreach/1,
           next/0,
           next_iter/1,
           filter_next/1,
@@ -68,10 +70,7 @@ new (L, T, N) when is_function(T) andalso
 
 -spec next_iter(repr()) -> repr().
 
+next_iter (none) ->
+  exit(bad_iterator);
 next_iter (List) ->
-  try
-    {hd(List), tl(List)}
-  catch
-    _:_ ->
-      none
-  end. 
+  {hd(List), case tl(List) of [] -> none; L -> L end}. 

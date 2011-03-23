@@ -97,7 +97,7 @@ test_filter (Config) ->
   do_specific_test(test_filter, Config).
 
 test_filter (_, Config) ->
-  test_iterator(Config, filter, pred_fun).
+  test_whole_iterator(Config, filter, pred_fun, std, std).
 
 test_all (Config) ->
   do_specific_test(test_all, Config).
@@ -132,6 +132,9 @@ test_iterator (Config, Function, FunKey, ArgFun) ->
 
 test_iterator (Config, Function, FunKey, std, RFuns) ->
   test_iterator (Config, Function, FunKey, fun (X) -> [X] end, RFuns);
+test_iterator (Config, Function, FunKey, ArgFun, std) ->
+  test_iterator (Config, Function, FunKey, ArgFun,
+                 {fun ?MODULE:apply/3, fun ?MODULE:apply/3});
 test_iterator (Config, Function, FunKey, ArgFun, {std, RF2}) ->
   test_iterator (Config, Function, FunKey, ArgFun, {fun ?MODULE:apply/3, RF2});
 test_iterator (Config, Function, FunKey, ArgFun, {RF1, std}) ->
@@ -151,12 +154,10 @@ test_iterator (Config, Function, FunKey, ArgFun, {RF1, RF2}) ->
   io:format("Comparing results: ~p =:= ~p\n", [Result, Expected]),
   true = (Result =:= Expected).
   
-test_predicate (Config, Function) ->
-  test_iterator(Config, Function, pred_fun).
-
-test_traverse (Config, Function) ->
+test_whole_iterator (Config, Function, FunKey, ArgFun, RF2) ->
   F = fun (M, F, A) ->
           Iter = ?MODULE:apply(M, F, A),
+          io:format("Iter = ~p\n", [Iter]),
           L = fun (I, Acc, Loop) ->
                   case I:next() of
                     {V, none} -> lists:reverse([V|Acc]);
@@ -165,10 +166,16 @@ test_traverse (Config, Function) ->
               end,
           L(Iter, [], L)
       end,
-  test_iterator(Config, Function, trav_fun, std, {F, std}).
+  test_iterator(Config, Function, FunKey, ArgFun, {F, RF2}).
+
+test_predicate (Config, Function) ->
+  test_iterator(Config, Function, pred_fun, std, std).
+
+test_traverse (Config, Function) ->
+  test_whole_iterator(Config, Function, trav_fun, std, std).
 
 test_reduce (Config, Function) ->
-  test_iterator(Config, Function, fold_fun, fun (F) -> [F, F(acc, ok)] end).
+  test_iterator(Config, Function, fold_fun, fun (F) -> [F, F(acc, ok)] end, std).
 
 apply ({Mod, Keys, D}, all, [Pred]) when Mod =:= dict orelse 
                                          Mod =:= orddict ->

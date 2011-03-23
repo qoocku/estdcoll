@@ -6,6 +6,8 @@
 -define (MAP_IMP, true).
 -define (FOREACH_IMP, true).
 -define (FOLD_IMP, true).
+-define (ALL_IMP, true).
+-define (ANY_IMP, true).
 -define (FILTER_IMP, true).
 -define (PARTITION_IMP, true).
 -endif.
@@ -24,10 +26,42 @@ next () ->
                  F      -> {THIS, F}
                end,
   case estdcoll_iterators:do_next({Mod, Fun}, Oper, Iter) of
+    Last = {_, none} ->
+      Last;
     {Item, I} ->
       {Item, new(I, Oper, Next)};
     none -> exit(bad_iterator)
   end.
+
+-endif.
+
+-ifdef (ALL_IMP).
+
+-spec all (b_collection:trav_fun()) -> iterator().
+
+all (_) when ?IS_EMPTY_ITER(Iter) ->
+  false;
+all (Fun) when is_function(Fun) ->
+  {Mod, Shift} = case Next of
+                   {M, F} -> {M, F};
+                   F      -> {THIS, F}
+                 end,
+  estdcoll_iterators:all_loop({Mod, Shift}, Fun, Oper, Iter).
+
+-endif.
+
+-ifdef (ALL_IMP).
+
+-spec any (b_collection:trav_fun()) -> iterator().
+
+any (_) when ?IS_EMPTY_ITER(Iter) ->
+  true;
+any (Fun) when is_function(Fun) ->
+  {Mod, Shift} = case Next of
+                   {M, F} -> {M, F};
+                   F      -> {THIS, F}
+                 end,
+  estdcoll_iterators:any_loop({Mod, Shift}, Fun, Oper, Iter).
 
 -endif.
 
