@@ -149,5 +149,4 @@ test_map (Mod, Config) when Mod =:= dict orelse Mod =:= orddict ->
                                       lists:sort(Mod:to_list(D1)) 
                                   end,
                                   fun (M, map, [F, D]) -> lists:sort(lists:map(F, M:to_list(D))) end}).
-
   

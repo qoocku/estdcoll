@@ -1,7 +1,7 @@
 %%% ==========================================================================
 %%% @author Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>
 %%% @since 2011-03-18
-%%% @doc TODO: Add description to i_random_access_suite
+%%% @doc Common Tests Base Features for `random_access' collections.
 %%% @end
 %%% ==========================================================================
 -module  (i_random_access_suite).

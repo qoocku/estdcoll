@@ -5,7 +5,7 @@
 %%% @end
 %%% ==========================================================================
 -module (i_map_as_collection_suite).
--extends (i_random_access_suite).
+-extends (i_random_access_and_strict_suite).
 
 -include_lib ("common_test/include/ct.hrl").
 
@@ -13,9 +13,8 @@
           groups/0, 
           init_per_group/2]).
 
-
 groups () ->
-  ?BASE_MODULE:groups() ++ [{map_as_collection, [parallel], [{group, random_access}]}].
+  ?BASE_MODULE:groups() ++ [{map_as_collection, [parallel], [{group, random_access_and_strict}]}].
 
 init_per_group (map_as_collection, Config) ->  
   [{mutation_arg, {-1000, 1000}},   
@@ -32,3 +31,4 @@ init_per_group (Group, Config) ->
 
 all() ->
     [{group, map_as_collection}]. 
+

@@ -48,7 +48,7 @@ all() ->
 %%% ============================================================================
 
 test_size (Config) ->
-  ?BASE_MODULE:do_specific_test(test_size, Config).
+  ?BASE_MODULE:do_specific_test(test_size, Config, fun ?MODULE:test_size/2).
 
 test_size (_, Config) ->
   ?BASE_MODULE:test_collection(Config, size, undefined, std).
