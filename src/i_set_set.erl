@@ -14,7 +14,7 @@
 %%% C l i e n t  A P I  E x p o r t s
 %%% --------------------------------------------------------------------
 
--export ([new/0, new/1]).
+-export ([new/0, new/1, new/2]).
 
 %%% --------------------------------------------------------------------
 %%% I n t e r n a l  e x p o r t s
@@ -62,14 +62,13 @@
 new () ->
   new(sets, sets:new()).
 
-new (sets) ->
-  new ();
-new (ordsets) ->
-  new (ordsets, ordsets:new());
-new ({ordset, OrdSet}) when is_list(OrdSet) ->
-  new(ordsets, ordsets:from_list(OrdSet));
+new (Mod) when Mod =:= sets orelse Mod =:= ordsets ->
+  new (Mod, Mod:new());
+new ({Mod, List}) when is_list(List) andalso 
+                       (Mod =:= sets orelse Mod =:= ordsets) ->
+  new(Mod, Mod:from_list(List));
 new (List) when is_list(List) ->
-  new(sets, sets:from_list(List)).
+  new({sets, List}).
 
 new (Mod, S) ->
   case Mod:is_set(S) of
@@ -84,13 +83,13 @@ any (Pred) when is_function(Pred) ->
   lists:any(Pred, Mod:to_list(Set)).
 
 delete (Item) ->
-  new(Mod:del_element(Item, Set)).
+  new(Mod, Mod:del_element(Item, Set)).
       
 extend (Set2) ->
   union(Set2).
 
 filter (Pred) when is_function(Pred) ->
-  new(Mod:filter(Pred, Set)).
+  new(Mod, Mod:filter(Pred, Set)).
 
 foreach (Fun) when is_function(Fun) ->
   lists:foreach(Fun, Mod:to_list(Set)).
@@ -146,11 +145,11 @@ iterator () ->
   i_iterator_list:new(Mod:to_list(Set)).
 
 map (Fun) when is_function(Fun) ->
-  new([Fun(Item) || Item <- Mod:to_list(Set)]).
+  new({Mod, [Fun(Item) || Item <- Mod:to_list(Set)]}).
 
 union (Set2) when is_tuple(Set2) andalso
                   element(1, Set2) =:= ?MODULE ->
-  new(Mod:union(Set, Set2:to_erlang()));
+  new(Mod, Mod:union(Set, Set2:to_erlang()));
 union (Iter) when is_tuple(Iter) andalso
                   element(2, Iter) =:= iterator ->
   new(merge_iterator_loop(Iter, Set));
@@ -192,14 +191,14 @@ merge (Fun, {set, Set2}) when is_function(Fun) ->
 
 
 put (Item) ->
-  new(Mod:add_element(Item, Set)).
+  new(Mod, Mod:add_element(Item, Set)).
 
 size () ->
   sets:size(Set).
 
 subtract (Set1) when is_tuple(Set) andalso
                      element(1, Set) =:= ?MODULE ->
-  new(Mod:subtract(Set, Set1));
+  new(Mod, Mod:subtract(Set, Set1));
 subtract (Iter) when is_tuple(Iter) andalso
                      element(2, Iter) =:= iterator ->
   subtract_loop(Iter, Set);
