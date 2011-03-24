@@ -64,11 +64,13 @@ new () ->
 
 new (Mod) when Mod =:= sets orelse Mod =:= ordsets ->
   new (Mod, Mod:new());
-new ({Mod, List}) when is_list(List) andalso 
-                       (Mod =:= sets orelse Mod =:= ordsets) ->
-  new(Mod, Mod:from_list(List));
-new (List) when is_list(List) ->
-  new({sets, List}).
+new ({Mod, S}) when is_list(S) andalso
+                    (Mod =:= sets orelse Mod =:= ordsets) ->
+  new(Mod, Mod:from_list(S));
+new ({sets, S}) ->
+  new(sets, S);
+new (S) ->
+  new({sets, S}).
 
 new (Mod, S) ->
   case Mod:is_set(S) of

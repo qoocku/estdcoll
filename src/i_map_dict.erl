@@ -72,7 +72,8 @@ new (Mod) when Mod =:= dict orelse Mod =:= orddict ->
   new(Mod, Mod:new());
 new (List) when is_list(List) ->
   new({dict, List});
-new ({Mod, List}) when is_list(List) ->
+new ({Mod, List}) when (Mod =:= dict orelse Mod =:= orddict) andalso
+                       is_list(List) ->
   new(Mod, Mod:from_list(List)).
 
 new (Mod, D) when Mod =:= dict orelse Mod =:= orddict  ->

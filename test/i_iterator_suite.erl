@@ -8,6 +8,7 @@
 -author  ("Damian T. Dobroczy\\'nski <qoocku@gmail.com> <email>").
 
 -include_lib ("common_test/include/ct.hrl").
+-include ("debug.hrl").
 
 -export ([all/0,
           groups/0, 
@@ -97,7 +98,7 @@ test_filter (Config) ->
   do_specific_test(test_filter, Config).
 
 test_filter (_, Config) ->
-  test_whole_iterator(Config, filter, pred_fun, std, std).
+  test_iterator(Config, filter, pred_fun, std, std).
 
 test_all (Config) ->
   do_specific_test(test_all, Config).
@@ -140,50 +141,40 @@ test_iterator (Config, Function, FunKey, ArgFun, {std, RF2}) ->
 test_iterator (Config, Function, FunKey, ArgFun, {RF1, std}) ->
   test_iterator (Config, Function, FunKey, ArgFun, {RF1, fun ?MODULE:apply/3});
 test_iterator (Config, Function, FunKey, ArgFun, {RF1, RF2}) ->
-  Iterator           = ?config(iterator, Config),
-  Samples            = ?config(samples, Config),
-  ErlMod             = ?config(erl_mod, Config),
-  {Result, Expected} = begin
-                         Args = case ?config(FunKey, Config) of
-                                  undefined -> [];
-                                  Fun       -> ArgFun(Fun)
-                                end,
-                         {RF1(Iterator, Function, Args),
-                          RF2(ErlMod, Function, Args ++ [Samples])}
-                       end, 
-  io:format("Comparing results: ~p =:= ~p\n", [Result, Expected]),
+  Iterator = ?config(iterator, Config),
+  Samples  = ?config(samples, Config),
+  ErlMod   = ?config(erl_mod, Config),
+  {R, E}   = begin
+               Args = case ?config(FunKey, Config) of
+                        undefined -> [];
+                        Fun       -> ArgFun(Fun)
+                      end,
+               {RF1(Iterator, Function, Args),
+                RF2(ErlMod, Function, Args ++ [Samples])}
+             end, 
+  [{name, Group}, _] = ?config(tc_group_properties, Config),
+  Result             = cast(Group, Function, R),                  
+  Expected           = cast(ErlMod, Function, E),
+  ?dbg(Result, Expected),
   true = (Result =:= Expected).
-  
-test_whole_iterator (Config, Function, FunKey, ArgFun, RF2) ->
-  F = fun (M, F, A) ->
-          Iter = ?MODULE:apply(M, F, A),
-          L = fun (I, Acc, Loop) ->
-                  try I:next() of
-                    {V, none} -> lists:reverse([V|Acc]);
-                    {V, N}    -> Loop(N, [V|Acc], Loop)
-                  catch
-                    exit:bad_iterator ->
-                      lists:reverse(Acc)
-                  end
-              end,
-          L(Iter, [], L)
-      end,
-  test_iterator(Config, Function, FunKey, ArgFun, {F, RF2}).
-
+ 
 test_predicate (Config, Function) ->
   test_iterator(Config, Function, pred_fun, std, std).
 
 test_traverse (Config, Function) ->
-  test_whole_iterator(Config, Function, trav_fun, std, std).
+  test_iterator(Config, Function, trav_fun).
 
 test_reduce (Config, Function) ->
   test_iterator(Config, Function, fold_fun, fun (F) -> [F, F(acc, ok)] end, std).
 
+%%% ----- specialized apply ----------
+
 apply ({Mod, Keys, D}, all, [Pred]) when Mod =:= dict orelse 
                                          Mod =:= orddict ->
   lists:all(Pred, [{K, Mod:fetch(K, D)} || K <- Keys]);
-apply ({Mod, List}, all, [Pred]) when Mod =:= sets orelse
-                                      Mod =:= ordsets orelse 
+apply ({Mod, S}, all, [Pred]) when Mod =:= sets ->
+  lists:all(Pred, sets:to_list(S));  
+apply ({Mod, List}, all, [Pred]) when Mod =:= ordsets orelse 
                                       Mod =:= lists ->
   lists:all(Pred, List);  
 apply ({Mod, Keys, D}, any, [Pred]) when Mod =:= dict orelse
@@ -223,12 +214,9 @@ apply ({Mod, [I|List]}, filter, [Pred]) when Mod =:= sets orelse
 apply ({Mod, Keys, D}, fold, [Fun, Acc]) when Mod =:= dict orelse
                                               Mod =:= orddict ->
   lists:foldl(Fun, Acc, [{K, Mod:fetch(K, D)} || K <- Keys]);
-apply (Mod, fold, [Fun, Acc, List]) when Mod =:= lists orelse
-                                         Mod =:= ordsets ->
+apply (Mod, fold, [Fun, Acc, List]) when Mod =:= lists ->
   lists:foldl(Fun, Acc, List);
-apply ({Mod, List}, fold, [Fun, Acc]) when Mod =:= lists orelse
-                                           Mod =:= sets orelse
-                                           Mod =:= ordsets ->
+apply ({Mod, List}, fold, [Fun, Acc]) when Mod =:= lists ->                                           
   lists:foldl(Fun, Acc, List);
 apply ({Mod, [K|Keys], D}, foreach, [Fun]) when Mod =:= dict orelse
                                                 Mod =:= orddict orelse
@@ -238,6 +226,63 @@ apply ({Mod, [K|Keys], D}, foreach, [Fun]) when Mod =:= dict orelse
 apply ({Mod, Keys, D}, next, []) when Mod =:= dict orelse
                                       Mod =:= orddict ->
   {hd(Keys), {tl(Keys), D}};
+
+apply (Mod, filter, [F, D]) when Mod =:= dict orelse Mod =:= orddict ->
+  Mod:filter(fun (K, V) -> F({K, V}) end, D);
+apply (Mod, Fun, [F, S]) when Mod =/= lists andalso 
+                              (Fun =:= all orelse Fun =:= any) ->
+  lists:Fun(F, Mod:to_list(S));
+apply (gb_trees, fold, [F, Acc, D]) ->
+  lists:foldl(F, Acc, gb_trees:to_orddict(D));
+apply (gb_trees, Fun, [F, D]) when Fun =:= foreach orelse Fun =:= filter ->
+  lists:Fun(F, gb_trees:to_orddict(D));
+apply (gb_sets, fold, [F, Acc, D]) ->
+  lists:foldl(F, Acc, gb_trees:to_list(D));
+apply (gb_sets, Fun, [F, D]) when Fun =:= foreach orelse Fun =:= filter  ->
+  lists:Fun(F, gb_trees:to_list(D));
+apply (Mod, Fun, [F, C]) when Mod =:= gb_sets
+                              andalso (Fun =:= map orelse Fun =:= foreach) ->
+  lists:Fun(F, Mod:to_list(C));
+apply (Mod, foreach, [F, C]) when Mod =:= sets
+                                  orelse Mod =:= ordsets
+                                  orelse Mod =:= dict
+                                  orelse Mod =:= orddict ->
+  lists:foreach(F, Mod:to_list(C));
+apply (Mod, map, [F, C]) when (Mod =:= sets orelse Mod =:= ordsets) ->
+  lists:map(F, lists:sort(Mod:to_list(C)));
+apply (Mod, map, [F, D]) when Mod =:= dict orelse Mod =:= orddict ->
+  lists:map(F, Mod:to_list(D));
+apply (Mod, fold, [F, Acc, D]) when Mod =:= dict orelse Mod =:= orddict ->
+  Mod:fold(fun (K, V, Acc0) -> F({K, V}, Acc0) end, Acc, D);
 apply (Mod, Fun, Args) ->
   erlang:apply(Mod, Fun, Args).
-  
+
+cast (_, Fun, V) when Fun =/= map andalso Fun =/= foreach andalso Fun =/= filter ->
+  V;
+cast (_Grp, Fun, Iter) when is_tuple(Iter) andalso element(2, Iter) =:= iterator 
+                           andalso (Fun =:= map orelse Fun =:= foreach orelse Fun =:= filter) ->
+  L = fun (I, Acc, Loop) ->
+          try I:next() of
+              {V, none} -> lists:reverse([V|Acc]);
+              {V, N}    -> Loop(N, [V|Acc], Loop)
+          catch
+            exit:bad_iterator ->
+              lists:reverse(Acc)
+          end
+      end,
+  lists:sort(L(Iter, [], L));
+cast (Mod, filter, V) when Mod =:= sets
+                           orelse Mod =:= ordsets
+                           orelse Mod =:= dict
+                           orelse Mod =:= orddict ->
+  lists:sort(Mod:to_list(V));
+cast (lists, _, V) ->
+  V;
+cast (Mod, _, V) when Mod =/= gb_trees andalso is_list(V) ->
+  lists:sort(V);
+cast (gb_trees, _, V) ->
+  orddict:to_list(gb_trees:to_orddict(V));
+cast (_, _, V) ->
+  V.
+
+

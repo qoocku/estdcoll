@@ -41,7 +41,7 @@
 %%% --------------------------------------------------------------------
 
 -opaque iterator () :: module().
--type repr     () :: {[any()], dict()}.
+-type repr     () :: {i, [any()], dict()}.
 
 %%% ============================================================================
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s
@@ -56,11 +56,11 @@ new (D, T) when is_function(T) ->
 new ({Ks, D}, T, N) when is_function(T) andalso
                          is_list(Ks) andalso 
                          (is_atom(N) orelse (is_tuple(N) andalso size(N) == 2)) ->
-  instance(iterator, {Ks, D}, T, N).
+  instance(iterator, {i, Ks, D}, T, N).
 
--define (IS_EMPTY_ITER(I), element(1, I) =:= []).
--define (EMPTY_ITER, {[], dict:new()}).
--define (EMPTY_ITER_PATTERN, {[], _}).
+-define (IS_EMPTY_ITER(I), element(2, I) =:= []).
+-define (EMPTY_ITER, {i, [], dict:new()}).
+-define (EMPTY_ITER_PATTERN, {i, [], _}).
 -define (IMP_ALL, true).
 -define (FILTER_NEXT_IMP, true).
 -include ("estdcoll/src/estdcoll_iterator_imp.hrl").
@@ -71,5 +71,10 @@ new ({Ks, D}, T, N) when is_function(T) andalso
 
 -spec next_iter(repr()) -> {any(), repr()}.
 
-next_iter ({Keys, Dict}) ->
-  {dict:fetch(hd(Keys), Dict), {tl(Keys), Dict}}.
+next_iter ({i, [], _}) ->
+  none;
+next_iter ({i, [K|Ks], Dict}) ->
+  {{K, dict:fetch(K, Dict)}, case Ks of
+                                 [] -> none;
+                                 Ks  -> {i, Ks, Dict}
+                               end}.
