@@ -13,13 +13,17 @@
 %%% C l i e n t  A P I  E x p o r t s
 %%% --------------------------------------------------------------------
 
--export ([new/1, new/2, new/3]).
+-export ([new/1,
+          new/2,
+          new/3]).
 
 %%% --------------------------------------------------------------------
 %%% I n t e r n a l  e x p o r t s
 %%% --------------------------------------------------------------------
 
--export ([foreach/1,
+-export ([all/1,
+          any/1,
+          foreach/1,
           next/0,
           next_iter/1,
           filter_next/1,
@@ -47,12 +51,11 @@ new (D) ->
   new(D, fun (Item) -> Item end).
 
 new (D, T) when is_function(T) ->
-  instance(iterator, {dict:fetch_keys(D), D}, T, next_iter).
+  new({dict:fetch_keys(D), D}, T, next_iter).
 
 new ({Ks, D}, T, N) when is_function(T) andalso
                          is_list(Ks) andalso 
-                         is_atom(N) andalso
-                         size(N) == 2 ->
+                         (is_atom(N) orelse (is_tuple(N) andalso size(N) == 2)) ->
   instance(iterator, {Ks, D}, T, N).
 
 -define (IS_EMPTY_ITER(I), element(1, I) =:= []).

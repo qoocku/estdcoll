@@ -49,12 +49,12 @@ new (L) when is_list(L) ->
   new(L, fun (Item) -> Item end).
 
 new (L, T) when is_list(L) andalso is_function(T) ->
-  instance(iterator, L, T, next_iter).
+  new(L, T, next_iter).
 
-new (L, T, N) when is_function(T) andalso
-                   is_list(L) andalso 
+new (L, T, N) when is_list(L) andalso 
+                   is_function(T) andalso 
                    (is_atom(N) orelse
-                                 (is_tuple(N) andalso size(N) == 2)) ->
+                   (is_tuple(N) andalso size(N) == 2)) ->
   instance(iterator, L, T, N).
 
 -define (IS_EMPTY_ITER(I), I =:= []).

@@ -30,7 +30,9 @@
 %%% I n t e r n a l  e x p o r t s
 %%% --------------------------------------------------------------------
 
--export ([filter/1,
+-export ([all/1,
+          any/1,
+          filter/1,
           filter_next/1,
           foreach/1,
           fold/2,
@@ -82,7 +84,7 @@ new (I, T) when is_function(T) ->
 -spec new (repr(), transfer_fun(), shift_fun_def()) -> iterator().
 
 new (I, T, N) when is_function(T) andalso 
-                   (is_atom(N) orelse is_tuple(N)) ->
+                   (is_atom(N) orelse (is_tuple(N) andalso size(N) == 2)) ->
   instance(iterator, I, T, N).
 
 -define (IS_EMPTY_ITER(I), I =:= none).

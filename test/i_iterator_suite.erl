@@ -157,11 +157,13 @@ test_iterator (Config, Function, FunKey, ArgFun, {RF1, RF2}) ->
 test_whole_iterator (Config, Function, FunKey, ArgFun, RF2) ->
   F = fun (M, F, A) ->
           Iter = ?MODULE:apply(M, F, A),
-          io:format("Iter = ~p\n", [Iter]),
           L = fun (I, Acc, Loop) ->
-                  case I:next() of
+                  try I:next() of
                     {V, none} -> lists:reverse([V|Acc]);
                     {V, N}    -> Loop(N, [V|Acc], Loop)
+                  catch
+                    exit:bad_iterator ->
+                      lists:reverse(Acc)
                   end
               end,
           L(Iter, [], L)

@@ -12,7 +12,7 @@
 do_next ({Mod, Fun}, Oper, I) ->
   case apply(Mod, Fun, [I]) of
     {Item, N} -> {Oper(Item), N};
-    none      -> none
+    none -> none
   end.
 
 fold_loop (_, Fun, _, {Item, none}, Acc) ->

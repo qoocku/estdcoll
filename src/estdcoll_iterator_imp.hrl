@@ -29,8 +29,7 @@ next () ->
     Last = {_, none} ->
       Last;
     {Item, I} ->
-      {Item, new(I, Oper, Next)};
-    none -> exit(bad_iterator)
+      {Item, new(I, Oper, Next)}
   end.
 
 -endif.
@@ -137,8 +136,10 @@ partition (Pred) when is_function(Pred) ->
 
 -ifdef (FILTER_NEXT_IMP).
 
+filter_next (none) ->
+  exit(bad_iterator);
 filter_next (Iter) when ?IS_EMPTY_ITER(Iter) ->
-  ?EMPTY_ITER;
+  exit(bad_iterator);
 filter_next (I) ->
   case next_iter(I) of
     ?EMPTY_ITER_PATTERN -> 
