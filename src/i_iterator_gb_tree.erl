@@ -36,6 +36,8 @@
           filter_next/1,
           foreach/1,
           fold/2,
+          hd/0,
+          head/0,
           next/0,
           next_iter/1,
           map/1,
@@ -102,6 +104,13 @@ new (I, T, N) when is_function(T) andalso
 %%% ============================================================================
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
+
+head () when Next =:= next_iter ->
+  {K, V, _} = gb_trees:next(Iter),
+  {K, V};
+head () ->
+  {K, V, _} = next(),
+  {K, V}.
 
 next_iter (none) ->
   exit(bad_iterator);

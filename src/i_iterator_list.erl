@@ -26,6 +26,8 @@
           next_iter/1,
           filter_next/1,
           fold/2,
+          hd/0,
+          head/0,
           map/1,
           partition/1,
           filter/1]).
@@ -72,6 +74,14 @@ new (L, T, N) when is_list(L) andalso
 %%% ============================================================================
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
+
+-spec head () -> any().
+
+head () when Next =:= next_iter ->
+  hd(Iter);
+head () ->
+  {Item, _} = next(),
+  Item.
 
 -spec next_iter(repr()) -> repr().
 

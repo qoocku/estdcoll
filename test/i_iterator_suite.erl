@@ -19,14 +19,16 @@
           init_per_testcase/2,
           end_per_testcase/2]).
 
--export([test_foreach/1,         
+-export([test_hd/1,
+         test_foreach/1,         
          test_fold/1,
          test_map/1,
          test_filter/1,
          test_any/1,
          test_all/1]).
 
--export([test_foreach/2,         
+-export([test_hd/2,
+         test_foreach/2,         
          test_map/2,
          test_fold/2,
          test_filter/2,
@@ -40,7 +42,8 @@
           apply/3]).
 
 groups () ->
-  [{iterators, [parallel], [test_foreach,
+  [{iterators, [parallel], [test_hd,
+                            test_foreach,
                             test_fold,
                             test_map,
                             test_filter,
@@ -70,6 +73,12 @@ all() ->
 %% --------------------------------------------------------------------
 %% TEST CASES
 %% --------------------------------------------------------------------
+
+test_hd (Config) ->
+  do_specific_test(test_hd, Config).
+
+test_hd (_, Config) ->
+  test_iterator(Config, hd).
 
 test_foreach (Config) ->
   do_specific_test(test_foreach, Config).
@@ -123,6 +132,9 @@ do_specific_test (Test, Config, Default) ->
     undefined -> Default(ErlMod, Config);
     Fun       -> Fun(ErlMod, Config)
   end.
+
+test_iterator (Config, Function) ->
+  test_iterator(Config, Function, undefined).
 
 test_iterator (Config, Function, FunKey) ->
   test_iterator (Config, Function, FunKey, fun (X) -> [X] end).
@@ -248,6 +260,10 @@ apply (Mod, map, [F, D]) when Mod =:= dict orelse Mod =:= orddict ->
   lists:map(F, Mod:to_list(D));
 apply (Mod, fold, [F, Acc, D]) when Mod =:= dict orelse Mod =:= orddict ->
   Mod:fold(fun (K, V, Acc0) -> F({K, V}, Acc0) end, Acc, D);
+apply (lists, hd, [L]) ->
+  hd(L);
+apply (Mod, hd, [V]) ->
+  hd(Mod:to_list(V));
 apply (Mod, Fun, Args) ->
   erlang:apply(Mod, Fun, Args).
 

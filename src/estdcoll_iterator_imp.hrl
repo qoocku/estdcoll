@@ -2,14 +2,49 @@
 -define (ESTDCOLL_ITERATOR_IMP_HRL, true).
 
 -ifdef (IMP_ALL).
+-ifndef (HEAD_IMP).
+-define (HEAD_IMP, true).
+-endif.
+-ifndef (NEXT_IMP).
 -define (NEXT_IMP, true).
+-endif.
+-ifndef (MAP_IMP).
 -define (MAP_IMP, true).
+-endif.
+-ifndef (FOREACH_IMP).
 -define (FOREACH_IMP, true).
+-endif.
+-ifndef (FOLD_IMP).
 -define (FOLD_IMP, true).
+-endif.
+-ifndef (ALL_IMP).
 -define (ALL_IMP, true).
+-endif.
+-ifndef (ANY_IMP).
 -define (ANY_IMP, true).
+-endif.
+-ifndef (FILTER_IMP).
 -define (FILTER_IMP, true).
+-endif.
+-ifndef (PARTITION_IMP).
 -define (PARTITION_IMP, true).
+-endif.
+-endif.
+
+
+-ifdef (HEAD_IMP).
+
+-compile ([{inline, [{hd, 0}]}]).
+
+%% @doc Returns the first item referenced by the iterator.
+
+-spec hd () -> any().
+
+hd () when Iter =:= none ->
+  exit(bad_iterator);
+hd () ->
+  head().
+
 -endif.
 
 -ifdef (NEXT_IMP).
