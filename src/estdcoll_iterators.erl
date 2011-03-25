@@ -47,7 +47,11 @@ do_next ({Mod, Fun}, Oper, #repr{r = I}) ->
   end.
 
 fold_loop (Next, Fun, Oper, R = #repr{}, Acc) ->
-  fold_loop(Fun, do_next(Next, Oper, R), Acc).
+  try do_next(Next, Oper, R) of
+      N = #nxt{} -> fold_loop(Fun, N, Acc)
+  catch
+    exit:bad_iterator -> Acc
+  end.
 
 fold_loop (_, none, Acc) ->
   Acc;
@@ -56,10 +60,20 @@ fold_loop (Fun, #nxt{pair = {Item, none}}, Acc) ->
 fold_loop (Fun, #nxt{pair = {Item, I}, 
                      oper = NewOper,
                      next = NewNext}, Acc) ->
-  fold_loop(Fun, do_next(NewNext, NewOper, #repr{r = I}), Fun(Item, Acc)).
+  Acc1 = Fun(Item, Acc),
+  try do_next(NewNext, NewOper, #repr{r = I}) of
+      N = #nxt{} -> fold_loop(Fun, N, Acc1)
+  catch
+    exit:bad_iterator -> Acc1
+  end.
+      
 
 foreach_loop (Next, Fun, Oper, R = #repr{}) ->
-  foreach_loop(Fun, do_next(Next, Oper, R)).
+  try do_next(Next, Oper, R) of
+      N = #nxt{} -> foreach_loop(Fun, N)
+  catch
+    exit:bad_iterator -> ok
+  end.
 
 foreach_loop (_, none) ->
   ok;
@@ -70,7 +84,12 @@ foreach_loop (Fun, #nxt{pair = {Item, I},
                         oper = NewOper,
                         next = NewNext}) ->
   Fun(Item),
-  foreach_loop(Fun, do_next(NewNext, NewOper, #repr{r = I})).
+  try do_next(NewNext, NewOper, #repr{r = I}) of
+      N = #nxt{} -> foreach_loop(Fun, N)
+  catch
+    exit:bad_iterator ->
+      ok
+  end.
 
 iterator_to_list (Iter) ->
   iterator_to_list(Iter, []).
@@ -87,7 +106,11 @@ iterator_to_list (Iter, Acc) ->
   end.
 
 all_loop (Next, Fun, Oper, R = #repr{}) ->
-  all_loop(Fun, do_next(Next, Oper, R)).
+  try do_next(Next, Oper, R) of
+      N = #nxt{} -> all_loop(Fun, N)
+  catch
+    exit:bad_iterator -> true
+  end.
 
 all_loop (Fun, #nxt{pair = {Item, none}}) ->
   Fun(Item);
@@ -95,12 +118,21 @@ all_loop (Fun, #nxt{pair = {Item, I},
                     oper = NewOper,
                     next = NewNext}) ->
   case Fun(Item) of
-    true   -> all_loop(Fun, do_next(NewNext, NewOper, #repr{r = I}));
+    true   -> try do_next(NewNext, NewOper, #repr{r = I}) of
+                  N = #nxt{} -> all_loop(Fun, N)
+              catch
+                exit:bad_iterator -> true
+              end;
     false  -> false
   end.
 
 any_loop (Next, Fun, Oper, R = #repr{}) ->
-  any_loop(Fun, do_next(Next, Oper, R)).
+  try do_next(Next, Oper, R) of
+      N = #nxt{} -> any_loop(Fun, N)
+  catch
+    exit:bad_iterator ->
+      false
+  end.
       
 any_loop (Fun, #nxt{pair = {Item, none}}) ->
   Fun(Item);
@@ -108,6 +140,10 @@ any_loop (Fun, #nxt{pair = {Item, I},
                     oper = NewOper,
                     next = NewNext}) ->
   case Fun(Item) of
-    false -> any_loop(Fun, do_next(NewNext, NewOper, #repr{r = I}));
+    false -> try do_next(NewNext, NewOper, #repr{r = I}) of
+                 N = #nxt{} -> any_loop(Fun, N)
+             catch
+               exit:bad_iterator -> false
+             end;
     true  -> true
   end.
