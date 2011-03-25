@@ -232,17 +232,11 @@ apply (Mod, filter, [F, D]) when Mod =:= dict orelse Mod =:= orddict ->
 apply (Mod, Fun, [F, S]) when Mod =/= lists andalso 
                               (Fun =:= all orelse Fun =:= any) ->
   lists:Fun(F, Mod:to_list(S));
-apply (gb_trees, fold, [F, Acc, D]) ->
-  lists:foldl(F, Acc, gb_trees:to_orddict(D));
-apply (gb_trees, Fun, [F, D]) when Fun =:= foreach orelse Fun =:= filter ->
-  lists:Fun(F, gb_trees:to_orddict(D));
-apply (gb_sets, fold, [F, Acc, D]) ->
-  lists:foldl(F, Acc, gb_trees:to_list(D));
-apply (gb_sets, Fun, [F, D]) when Fun =:= foreach orelse Fun =:= filter  ->
-  lists:Fun(F, gb_trees:to_list(D));
-apply (Mod, Fun, [F, C]) when Mod =:= gb_sets
-                              andalso (Fun =:= map orelse Fun =:= foreach) ->
-  lists:Fun(F, Mod:to_list(C));
+apply (Mod, fold, [F, Acc, D]) when Mod =:= gb_trees orelse Mod =:= gb_sets ->
+  lists:foldl(F, Acc, Mod:to_list(D));
+apply (Mod, Fun, [F, D]) when (Mod =:= gb_trees orelse Mod =:= gb_sets)
+                              andalso (Fun =:= foreach orelse Fun =:= filter orelse Fun =:= map) ->
+  lists:Fun(F, Mod:to_list(D));
 apply (Mod, foreach, [F, C]) when Mod =:= sets
                                   orelse Mod =:= ordsets
                                   orelse Mod =:= dict
@@ -280,8 +274,6 @@ cast (lists, _, V) ->
   V;
 cast (Mod, _, V) when Mod =/= gb_trees andalso is_list(V) ->
   lists:sort(V);
-cast (gb_trees, _, V) ->
-  orddict:to_list(gb_trees:to_orddict(V));
 cast (_, _, V) ->
   V.
 

@@ -23,7 +23,7 @@ groups () ->
 
 init_per_group (gb_tree, Config) ->
   Samples = gb_trees:from_orddict(lists:zip(lists:seq(1, 1000), lists:seq(1000, 1, -1))),
-  [{iterator, i_iterator_gb_tree:new(Samples)},
+  [{iterator, (i_map_gb_tree:new(Samples)):iterator()},
    {samples, Samples},
    {erl_mod, gb_trees},
    {fold_fun, fun

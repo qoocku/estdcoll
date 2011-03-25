@@ -23,7 +23,7 @@ groups () ->
 
 init_per_group (gb_set, Config) ->
   Samples = gb_sets:from_list(lists:seq(1, 1000)),
-  [{iterator, i_iterator_gb_set:new(Samples)},
+  [{iterator, (i_set_gb_set:new(Samples)):iterator()},
    {samples, Samples},
    {erl_mod, gb_sets},
    {fold_fun, fun

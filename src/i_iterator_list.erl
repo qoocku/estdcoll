@@ -38,6 +38,8 @@
 %%% R e c o r d s ,  T y p e s  a n d  S p e c s
 %%% --------------------------------------------------------------------
 
+-include_lib ("estdcoll/include/iterator.hrl").
+
 -opaque iterator () :: module().
 -opaque repr     () :: list().
 

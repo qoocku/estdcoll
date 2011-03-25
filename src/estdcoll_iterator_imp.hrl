@@ -25,7 +25,7 @@ next () ->
                  {M, F} -> {M, F};
                  F      -> {THIS, F}
                end,
-  case estdcoll_iterators:do_next({Mod, Fun}, Oper, Iter) of
+  case estdcoll_iterators:do_next({Mod, Fun}, Oper, #repr{r = Iter}) of
     Last = {_, none} ->
       Last;
     {Item, I} ->
@@ -45,7 +45,7 @@ all (Fun) when is_function(Fun) ->
                    {M, F} -> {M, F};
                    F      -> {THIS, F}
                  end,
-  estdcoll_iterators:all_loop({Mod, Shift}, Fun, Oper, Iter).
+  estdcoll_iterators:all_loop({Mod, Shift}, Fun, Oper, #repr{r = Iter}).
 
 -endif.
 
@@ -60,7 +60,7 @@ any (Fun) when is_function(Fun) ->
                    {M, F} -> {M, F};
                    F      -> {THIS, F}
                  end,
-  estdcoll_iterators:any_loop({Mod, Shift}, Fun, Oper, Iter).
+  estdcoll_iterators:any_loop({Mod, Shift}, Fun, Oper, #repr{r = Iter}).
 
 -endif.
 
@@ -103,7 +103,7 @@ fold (Fun, Acc0) when is_function(Fun) ->
                    {M, F} -> {M, F};
                    F      -> {THIS, F}
                  end,
-  estdcoll_iterators:fold_loop({Mod, Shift}, Fun, Oper, Iter, Acc0).
+  estdcoll_iterators:fold_loop({Mod, Shift}, Fun, Oper, #repr{r = Iter}, Acc0).
 
 -endif.
 
@@ -119,7 +119,7 @@ foreach (Fun) when is_function(Fun) ->
                    {M, F} -> {M, F};
                    F      -> {THIS, F}
                  end,
-  estdcoll_iterators:foreach_loop({Mod, Shift}, Fun, Oper, Iter).
+  estdcoll_iterators:foreach_loop({Mod, Shift}, Fun, Oper, #repr{r = Iter}).
 
 -endif.
 

@@ -37,8 +37,11 @@
           foreach/1,
           fold/2,
           next/0,
+          next_iter/1,
           map/1,
           partition/1]).
+
+-include ("estdcoll/include/iterator.hrl").
 
 %%% --------------------------------------------------------------------
 %%% M a c r o s
@@ -50,10 +53,13 @@
 
 -type transfer_fun  () :: fun((any()) -> any()).
 -type shift_fun_def () :: atom() | {atom(), atom()}.
--type repr          () :: gb_trees:iterator().
+-opaque repr        () :: gb_trees:iterator().
 -opaque iterator    () :: module().
 
--export_type ([iterator/0]).
+-export_type ([iterator/0,
+               repr/0,
+               shift_fun_def/0,
+               transfer_fun/0]).
 
 %%% ============================================================================
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s
@@ -76,7 +82,7 @@ new (I) ->
 -spec new (repr(), transfer_fun()) -> iterator().
 
 new (I, T) when is_function(T) ->
-  new(I, T, {gb_trees, next}).
+  new(I, T, next_iter).
 
 %% @doc Creates an iterator using `gb_trees:iterator/0' value. The transfer operation
 %%      is defined by `T' value and the next-state shift function is `N'.
@@ -97,13 +103,22 @@ new (I, T, N) when is_function(T) andalso
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
 
+next_iter (none) ->
+  exit(bad_iterator);
+next_iter (I) ->
+  case gb_trees:next(I) of
+    {K, V, []} -> {{K, V}, none};
+    {K, V, N}  -> {{K, V}, N};
+    Other -> Other
+  end.
+
 filter_next (none) ->
   none;
 filter_next (I) ->
   case gb_trees:next(I) of
-    Current = {K, V, N} -> case Oper({filter, {K, V}}) of
-                             false -> filter_next(N);
-                             true  -> Current
-                           end;
+    {K, V, N} -> case Oper({filter, {K, V}}) of
+                   false -> if N =:= [] -> exit(bad_iterator); true -> filter_next(N) end;
+                   true  -> {{K, V}, if N =:= [] -> none; true -> N end}
+                 end;
     none -> none
   end.

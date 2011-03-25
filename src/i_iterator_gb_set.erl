@@ -37,6 +37,7 @@
           foreach/1,
           fold/2,
           next/0,
+          next_iter/1,
           map/1,
           partition/1]).
 
@@ -48,12 +49,17 @@
 %%% R e c o r d s ,  T y p e s  a n d  S p e c s
 %%% --------------------------------------------------------------------
 
+-include ("estdcoll/include/iterator.hrl").
+
 -type transfer_fun  () :: fun((any()) -> any()).
 -type shift_fun_def () :: atom() | {atom(), atom()}.
--type repr          () :: gb_sets:iterator().
+-opaque repr        () :: estdcoll_iterators:repr(gb_sets:iterator()).
 -opaque iterator    () :: module().
 
--export_type ([iterator/0]).
+-export_type ([iterator/0,
+               repr/0,
+               transfer_fun/0,
+               shift_fun_def/0]).
 
 %%% ============================================================================
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s
@@ -63,7 +69,7 @@
 %%      is equal by default to identity function `fun (X) -> X end'.
 %% @equiv new(I, fun (X) -> X end, {gb_trees, next})
 
--spec new (repr()) -> module().
+-spec new (gb_sets:iterator()) -> iterator().
               
 new (I) ->
   new(I, fun (Item) -> Item end).
@@ -73,15 +79,18 @@ new (I) ->
 %%      `gb_trees:next/1'.
 %% @equiv new(I, fun (X) -> X end, {gb_trees, next})
 
--spec new (repr(), transfer_fun()) -> iterator().
+-spec new (gb_sets:iterator(),
+           transfer_fun()) -> iterator().
 
 new (I, T) when is_function(T) ->
-  new(I, T, {gb_sets, next}).
+  new(I, T, next_iter).
 
 %% @doc Creates an iterator using `gb_trees:iterator/0' value. The transfer operation
 %%      is defined by `T' value and the next-state shift function is `N'.
 
--spec new (repr(), transfer_fun(), shift_fun_def()) -> iterator().
+-spec new (gb_sets:iterator(),
+           transfer_fun(),
+           shift_fun_def()) -> iterator().
 
 new (I, T, N) when is_function(T) andalso 
                    (is_atom(N) orelse (is_tuple(N) andalso size(N) == 2)) ->
@@ -97,13 +106,21 @@ new (I, T, N) when is_function(T) andalso
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
 
+next_iter (none) ->
+  exit(bad_iterator);
+next_iter (I) ->
+  case gb_sets:next(I) of
+    {V, []} -> {V, none};
+    Other -> Other
+  end.
+
 filter_next (none) ->
   none;
 filter_next (I) ->
   case gb_sets:next(I) of
-    Current = {Item, N} -> case Oper({filter, Item}) of
-                             false -> filter_next(N);
-                             true  -> Current
-                           end;
+    {Item, N} -> case Oper({filter, Item}) of
+                   false -> if N =:= [] -> exit(bad_iterator); true -> filter_next(N) end;
+                   true  -> {Item, N}
+                 end;
     none -> none
   end.
