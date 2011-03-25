@@ -144,7 +144,7 @@ intersection (Collection) when is_tuple(Collection) ->
   end.
 
 iterator () ->
-  i_iterator_list:new(Mod:to_list(Set)).
+  i_iterator_set:new({Mod, Set}).
 
 map (Fun) when is_function(Fun) ->
   new({Mod, [Fun(Item) || Item <- Mod:to_list(Set)]}).
