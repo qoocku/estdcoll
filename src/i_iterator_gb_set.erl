@@ -41,7 +41,9 @@
           next/0,
           next_iter/1,
           map/1,
-          partition/1]).
+          partition/1,
+          tl/0,
+          tail/0]).
 
 %%% --------------------------------------------------------------------
 %%% M a c r o s
@@ -114,6 +116,19 @@ head () when Next =:= next_iter ->
 head () ->
   {Item, _} = next(),
   Item.
+
+%% @doc Returns iterator referencing all but the first item. No availability check is done.
+
+-spec tail () -> iterator().
+
+tail () when Next =:= next_iter ->
+  case gb_sets:next(Iter) of
+    {_, []}   -> none;
+    {_, Tail} -> Tail
+  end;
+tail () ->
+  {_, Tail} = next(),
+  Tail.
 
 next_iter (none) ->
   exit(bad_iterator);

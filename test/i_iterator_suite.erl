@@ -25,7 +25,8 @@
          test_map/1,
          test_filter/1,
          test_any/1,
-         test_all/1]).
+         test_all/1,
+         test_tl/1]).
 
 -export([test_hd/2,
          test_foreach/2,         
@@ -33,7 +34,8 @@
          test_fold/2,
          test_filter/2,
          test_any/2,
-         test_all/2]).
+         test_all/2,
+         test_tl/2]).
 
 
 -export ([test_iterator/4,
@@ -120,6 +122,12 @@ test_any (Config) ->
 
 test_any (_, Config) ->
   test_predicate(Config, any).
+
+test_tl (Config) ->
+  do_specific_test(test_tl, Config).
+
+test_tl (_, Config) ->
+  test_iterator(Config, tl).
 
 %%% ------- local functions --------
 
@@ -260,10 +268,10 @@ apply (Mod, map, [F, D]) when Mod =:= dict orelse Mod =:= orddict ->
   lists:map(F, Mod:to_list(D));
 apply (Mod, fold, [F, Acc, D]) when Mod =:= dict orelse Mod =:= orddict ->
   Mod:fold(fun (K, V, Acc0) -> F({K, V}, Acc0) end, Acc, D);
-apply (lists, hd, [L]) ->
-  hd(L);
-apply (Mod, hd, [V]) ->
-  hd(Mod:to_list(V));
+apply (lists, Fun, [L]) when Fun =:= hd orelse Fun =:= tl ->
+  erlang:Fun(L);
+apply (Mod, Fun, [V])  when Fun =:= hd orelse Fun =:= tl ->
+  erlang:Fun(Mod:to_list(V));
 apply (Mod, Fun, Args) ->
   erlang:apply(Mod, Fun, Args).
 

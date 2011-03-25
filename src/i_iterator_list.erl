@@ -30,6 +30,8 @@
           head/0,
           map/1,
           partition/1,
+          tl/0,
+          tail/0,
           filter/1]).
 
 %%% --------------------------------------------------------------------
@@ -75,6 +77,8 @@ new (L, T, N) when is_list(L) andalso
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
 
+%% @doc Returns the first item referenced by the iterator. No availability check is done.
+
 -spec head () -> any().
 
 head () when Next =:= next_iter ->
@@ -82,6 +86,16 @@ head () when Next =:= next_iter ->
 head () ->
   {Item, _} = next(),
   Item.
+
+%% @doc Returns iterator referencing all but the first item. No availability check is done.
+
+-spec tail () -> iterator().
+
+tail () when Next =:= next_iter ->
+  tl(Iter);
+tail () ->
+  {_, Tail} = next(),
+  Tail.
 
 -spec next_iter(repr()) -> repr().
 

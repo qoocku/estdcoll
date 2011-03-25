@@ -26,6 +26,9 @@
 -ifndef (FILTER_IMP).
 -define (FILTER_IMP, true).
 -endif.
+-ifndef (TAIL_IMP).
+-define (TAIL_IMP, true).
+-endif.
 -ifndef (PARTITION_IMP).
 -define (PARTITION_IMP, true).
 -endif.
@@ -166,6 +169,19 @@ foreach (Fun) when is_function(Fun) ->
 
 partition (Pred) when is_function(Pred) ->
   {filter(Pred), filter(fun (I) -> not Pred(I) end)}.
+
+-endif.
+
+-ifdef (TAIL_IMP).
+
+%% @equiv begin {_, Tail} = Iter:next(), Tail end
+
+-spec tl () -> iterator().
+
+tl () when Iter =:= none ->
+  exit(bad_iterator);
+tl () ->
+  tail().
 
 -endif.
 

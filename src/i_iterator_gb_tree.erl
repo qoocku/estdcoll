@@ -41,7 +41,9 @@
           next/0,
           next_iter/1,
           map/1,
-          partition/1]).
+          partition/1,
+          tl/0,
+          tail/0]).
 
 -include ("estdcoll/include/iterator.hrl").
 
@@ -105,12 +107,29 @@ new (I, T, N) when is_function(T) andalso
 %%% L o c a l  F u n c t i o n s
 %%% ============================================================================
 
+%% @ Returns the first pair {Key, Value} referenced by the iterator. No avaiabilty check is done.
+
+-spec head () -> {any(), any()}.
+               
 head () when Next =:= next_iter ->
   {K, V, _} = gb_trees:next(Iter),
   {K, V};
 head () ->
   {K, V, _} = next(),
   {K, V}.
+
+%% @doc Returns iterator referencing all but the first item. No availability check is done.
+
+-spec tail () -> iterator().
+
+tail () when Next =:= next_iter ->
+  case gb_trees:next(Iter) of
+    {_, []}   -> none;
+    {_, Tail} -> Tail
+  end;
+tail () ->
+  {_, Tail} = next(),
+  Tail.
 
 next_iter (none) ->
   exit(bad_iterator);
