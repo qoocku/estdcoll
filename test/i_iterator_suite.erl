@@ -19,7 +19,8 @@
           init_per_testcase/2,
           end_per_testcase/2]).
 
--export([test_hd/1,
+-export([test_dropwhile/1,
+         test_hd/1,
          test_foreach/1,         
          test_fold/1,
          test_map/1,
@@ -28,7 +29,8 @@
          test_all/1,
          test_tl/1]).
 
--export([test_hd/2,
+-export([test_dropwhile/2,
+         test_hd/2,
          test_foreach/2,         
          test_map/2,
          test_fold/2,
@@ -44,7 +46,8 @@
           apply/3]).
 
 groups () ->
-  [{iterators, [parallel], [test_hd,
+  [{iterators, [parallel], [test_dropwhile,
+                            test_hd,
                             test_foreach,
                             test_fold,
                             test_map,
@@ -75,6 +78,12 @@ all() ->
 %% --------------------------------------------------------------------
 %% TEST CASES
 %% --------------------------------------------------------------------
+
+test_dropwhile (Config) ->
+  do_specific_test(test_dropwhile, Config).
+
+test_dropwhile (_, Config) ->
+  test_predicate(Config, dropwhile).
 
 test_hd (Config) ->
   do_specific_test(test_hd, Config).
@@ -255,7 +264,10 @@ apply (Mod, Fun, [F, S]) when Mod =/= lists andalso
 apply (Mod, fold, [F, Acc, D]) when Mod =:= gb_trees orelse Mod =:= gb_sets ->
   lists:foldl(F, Acc, Mod:to_list(D));
 apply (Mod, Fun, [F, D]) when (Mod =:= gb_trees orelse Mod =:= gb_sets)
-                              andalso (Fun =:= foreach orelse Fun =:= filter orelse Fun =:= map) ->
+                              andalso (Fun =:= foreach
+                                       orelse Fun =:= filter
+                                       orelse Fun =:= map
+                                       orelse Fun =:= dropwhile) ->
   lists:Fun(F, Mod:to_list(D));
 apply (Mod, foreach, [F, C]) when Mod =:= sets
                                   orelse Mod =:= ordsets
@@ -272,13 +284,23 @@ apply (lists, Fun, [L]) when Fun =:= hd orelse Fun =:= tl ->
   erlang:Fun(L);
 apply (Mod, Fun, [V])  when Fun =:= hd orelse Fun =:= tl ->
   erlang:Fun(Mod:to_list(V));
+apply (Mod, Fun , [F, V]) when Mod =/= lists 
+                               andalso (Fun =:= dropwhile) ->
+  lists:Fun(F, Mod:to_list(V));
 apply (Mod, Fun, Args) ->
   erlang:apply(Mod, Fun, Args).
 
-cast (_, Fun, V) when Fun =/= map andalso Fun =/= foreach andalso Fun =/= filter ->
+cast (_, Fun, V) when Fun =/= map andalso 
+                      Fun =/= foreach andalso 
+                      Fun =/= filter andalso 
+                      Fun =/= dropwhile ->
   V;
-cast (_Grp, Fun, Iter) when is_tuple(Iter) andalso element(2, Iter) =:= iterator 
-                           andalso (Fun =:= map orelse Fun =:= foreach orelse Fun =:= filter) ->
+cast (_Grp, Fun, Iter) when is_tuple(Iter)
+                            andalso element(2, Iter) =:= iterator 
+                            andalso (Fun =:= map
+                                     orelse Fun =:= foreach
+                                     orelse Fun =:= filter
+                                     orelse Fun =:= dropwhile) ->
   L = fun (I, Acc, Loop) ->
           try I:next() of
               {V, none} -> lists:reverse([V|Acc]);

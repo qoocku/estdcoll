@@ -2,6 +2,9 @@
 -define (ESTDCOLL_ITERATOR_IMP_HRL, true).
 
 -ifdef (IMP_ALL).
+-ifndef (DROPWHILE_IMP).
+-define (DROPWHILE_IMP, true).
+-endif.
 -ifndef (HEAD_IMP).
 -define (HEAD_IMP, true).
 -endif.
@@ -34,6 +37,30 @@
 -endif.
 -endif.
 
+-ifndef (DROPWHILE_ALL_IMP).
+-define (DROPWHILE_NAME, dropwhile).
+-else.
+-define (DROPWHILE_NAME, default_dropwhile).
+-endif.
+
+%% @doc Returns an iterator which drops any item that does not
+%%      satisfies given predicate.
+
+-spec ?DROPWHILE_NAME (b_collection:pred_fun()) -> iterator().
+
+?DROPWHILE_NAME (Pred) when is_function(Pred) ->
+  PrevNext = case Next of
+               {M, F} -> {M, F};
+               Next   -> {THIS, Next}
+             end,
+  new(Iter, fun 
+              (prev_oper)         -> Oper;
+              (prev_next)         -> PrevNext;
+              ({dropwhile, Item}) -> Pred(Item);
+              (Item)              -> Oper(Item)
+            end, dropwhile_next).
+
+-endif.
 
 -ifdef (HEAD_IMP).
 
@@ -56,7 +83,7 @@ hd () ->
 
 -spec next () -> iterator().
 
-next () when ?IS_EMPTY_ITER(Iter) ->
+next () when Iter =:= none ->
   exit(bad_iterator);
 next () ->
   {Mod, Fun} = case Next of
@@ -64,10 +91,16 @@ next () ->
                  F      -> {THIS, F}
                end,
   case estdcoll_iterators:do_next({Mod, Fun}, Oper, #repr{r = Iter}) of
-    Last = {_, none} ->
-      Last;
-    {Item, I} ->
-      {Item, new(I, Oper, Next)}
+    Last = #nxt{pair = {_, none}} -> Last#nxt.pair;
+    #nxt{pair = {Item, I},
+         oper = NewOper,
+         next = NewNext} when is_atom(NewNext) -> {Item, new(I, NewOper, NewNext)};
+    #nxt{pair = {Item, I},
+         oper = NewOper,
+         next = {Mod, NewNext}} when is_atom(Mod) -> {Item, new(I, NewOper, {Mod, NewNext})};
+    #nxt{pair = {Item, I},
+         oper = NewOper,
+         next = {_, NewNext}}  -> {Item, new(I, NewOper, NewNext)}
   end.
 
 -endif.
@@ -76,7 +109,7 @@ next () ->
 
 -spec all (b_collection:trav_fun()) -> iterator().
 
-all (_) when ?IS_EMPTY_ITER(Iter) ->
+all (_) when Iter =:= none ->
   false;
 all (Fun) when is_function(Fun) ->
   {Mod, Shift} = case Next of
@@ -91,7 +124,7 @@ all (Fun) when is_function(Fun) ->
 
 -spec any (b_collection:trav_fun()) -> iterator().
 
-any (_) when ?IS_EMPTY_ITER(Iter) ->
+any (_) when Iter =:= none ->
   true;
 any (Fun) when is_function(Fun) ->
   {Mod, Shift} = case Next of
@@ -136,6 +169,8 @@ filter (Pred) when is_function(Pred) ->
 
 -spec fold (b_collection:fold_fun(), any()) -> any().
                
+fold (_, Acc0) when Iter =:= none ->
+  Acc0;
 fold (Fun, Acc0) when is_function(Fun) ->
   {Mod, Shift} = case Next of
                    {M, F} -> {M, F};
@@ -185,11 +220,9 @@ tl () ->
 
 -endif.
 
--ifdef (FILTER_NEXT_IMP).
+-ifndef (FILTER_NEXT_IMP).
 
 filter_next (none) ->
-  exit(bad_iterator);
-filter_next (Iter) when ?IS_EMPTY_ITER(Iter) ->
   exit(bad_iterator);
 filter_next (I) ->
   case next_iter(I) of
@@ -205,6 +238,25 @@ filter_next (I) ->
   end.
 
 -endif.
+
+-ifndef (DROPWHILE_NEXT_IMP).
+
+-compile ([{inline, [{dropwhile_next, 1}]}]).
+
+dropwhile_next (none) ->
+  exit(bad_iterator);
+dropwhile_next (I) ->
+  case next_iter(I) of
+    none ->
+      none;
+    Current = {Item, N} ->
+      case Oper({dropwhile, Item}) of
+        true ->
+          dropwhile_next(N);
+        false ->
+          {Current, {oper, Oper(prev_oper)}, {next, Oper(prev_next)}}
+      end
+  end.
 
 -endif.
 

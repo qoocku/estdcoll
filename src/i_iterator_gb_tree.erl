@@ -32,6 +32,8 @@
 
 -export ([all/1,
           any/1,
+          dropwhile/1,
+          dropwhile_next/1,
           filter/1,
           filter_next/1,
           foreach/1,
@@ -100,6 +102,7 @@ new (I, T, N) when is_function(T) andalso
 -define (IS_EMPTY_ITER(I), I =:= none).
 -define (EMPTY_PATTERN, none).
 -define (EMPTY_ITER_PATTERN, none).
+-define (FILTER_NEXT_IMP, true).
 -define (IMP_ALL, true).
 -include ("estdcoll/src/estdcoll_iterator_imp.hrl").
 

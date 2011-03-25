@@ -11,6 +11,8 @@
 
 -include ("estdcoll/include/iterator.hrl").
 
+-type next_result() :: #nxt{} | none.
+
 -opaque repr(T) :: {repr, T}.
 -opaque iterator() :: module().
 
@@ -19,34 +21,56 @@
 
 -spec do_next ({module(), atom()},
                b_collection:trav_fun(),
-               repr(any())) -> {any(), iterator()} | none.
+               repr(any())) -> next_result().
                   
 
 do_next ({Mod, Fun}, Oper, #repr{r = I}) ->
   case apply(Mod, Fun, [I]) of
-    {Item, N} -> {Oper(Item), N};
-    none -> none
+    {{Item, N}, {oper, NewOper}, {next, NewNext}} ->
+      #nxt{pair = {NewOper(Item), N}, 
+           oper = NewOper,
+           next = NewNext};
+    {{Item, N}, {next, NewNext}} ->
+      #nxt{pair = {Oper(Item), N}, 
+           oper = Oper,
+           next = NewNext};
+    {{Item, N}, {oper, NewOper}} ->
+      #nxt{pair = {NewOper(Item), N}, 
+           oper = NewOper,
+           next = {Mod, Fun}};
+    {Item, N} -> 
+      #nxt{pair = {Oper(Item), N},
+           oper = Oper,
+           next = {Mod, Fun}};
+    none -> 
+      none
   end.
 
-fold_loop (_, _, _, none, Acc) ->
-  Acc;
-fold_loop (_, Fun, _, {Item, none}, Acc) ->
-  Fun(Item, Acc);
 fold_loop (Next, Fun, Oper, R = #repr{}, Acc) ->
-  fold_loop(Next, Fun, Oper, do_next(Next, Oper, R), Acc);
-fold_loop (Next, Fun, Oper, {Item, I}, Acc) ->
-  fold_loop(Next, Fun, Oper, do_next(Next, Oper, #repr{r = I}), Fun(Item, Acc)).
+  fold_loop(Fun, do_next(Next, Oper, R), Acc).
 
-foreach_loop (_, _, _, none) ->
+fold_loop (_, none, Acc) ->
+  Acc;
+fold_loop (Fun, #nxt{pair = {Item, none}}, Acc) ->
+  Fun(Item, Acc);
+fold_loop (Fun, #nxt{pair = {Item, I}, 
+                     oper = NewOper,
+                     next = NewNext}, Acc) ->
+  fold_loop(Fun, do_next(NewNext, NewOper, #repr{r = I}), Fun(Item, Acc)).
+
+foreach_loop (Next, Fun, Oper, R = #repr{}) ->
+  foreach_loop(Fun, do_next(Next, Oper, R)).
+
+foreach_loop (_, none) ->
   ok;
-foreach_loop (_, Fun, _, {Item, none}) ->
+foreach_loop (Fun, #nxt{pair = {Item, none}}) ->
   Fun(Item),
   ok;  
-foreach_loop (Next, Fun, Oper, R = #repr{}) ->
-  foreach_loop(Next, Fun, Oper, do_next(Next, Oper, R));
-foreach_loop (Next, Fun, Oper, {Item, I}) ->
+foreach_loop (Fun, #nxt{pair = {Item, I},
+                        oper = NewOper,
+                        next = NewNext}) ->
   Fun(Item),
-  foreach_loop(Next, Fun, Oper, do_next(Next, Oper, #repr{r = I})).
+  foreach_loop(Fun, do_next(NewNext, NewOper, #repr{r = I})).
 
 iterator_to_list (Iter) ->
   iterator_to_list(Iter, []).
@@ -62,22 +86,28 @@ iterator_to_list (Iter, Acc) ->
       lists:reverse(Acc)
   end.
 
-all_loop (_, Fun, _, {Item, none}) ->
-  Fun(Item);
 all_loop (Next, Fun, Oper, R = #repr{}) ->
-  all_loop(Next, Fun, Oper, do_next(Next, Oper, R));
-all_loop (Next, Fun, Oper, {Item, I}) ->
+  all_loop(Fun, do_next(Next, Oper, R)).
+
+all_loop (Fun, #nxt{pair = {Item, none}}) ->
+  Fun(Item);
+all_loop (Fun, #nxt{pair = {Item, I},
+                    oper = NewOper,
+                    next = NewNext}) ->
   case Fun(Item) of
-    true   -> all_loop(Next, Fun, Oper, do_next(Next, Oper, #repr{r = I}));
+    true   -> all_loop(Fun, do_next(NewNext, NewOper, #repr{r = I}));
     false  -> false
   end.
-      
-any_loop (_, Fun, _, {Item, none}) ->
-  Fun(Item);
+
 any_loop (Next, Fun, Oper, R = #repr{}) ->
-  any_loop(Next, Fun, Oper, do_next(Next, Oper, R));
-any_loop (Next, Fun, Oper, {Item, I}) ->
+  any_loop(Fun, do_next(Next, Oper, R)).
+      
+any_loop (Fun, #nxt{pair = {Item, none}}) ->
+  Fun(Item);
+any_loop (Fun, #nxt{pair = {Item, I},
+                    oper = NewOper,
+                    next = NewNext}) ->
   case Fun(Item) of
-    false -> any_loop(Next, Fun, Oper, do_next(Next, Oper, #repr{r = I}));
+    false -> any_loop(Fun, do_next(NewNext, NewOper, #repr{r = I}));
     true  -> true
   end.
