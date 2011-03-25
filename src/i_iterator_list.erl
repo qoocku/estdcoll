@@ -32,6 +32,8 @@
           head/0,
           map/1,
           partition/1,
+          takewhile/1,
+          takewhile_next/1,
           tl/0,
           tail/0,
           filter/1]).
@@ -66,7 +68,7 @@ new (L, T, N) when is_list(L) andalso
                    is_function(T) andalso 
                    (is_atom(N) orelse
                    (is_tuple(N) andalso size(N) == 2)) ->
-  instance(iterator, L, T, N).
+  instance(iterator, if L =:= [] -> none ; true -> L end, T, N).
 
 -define (IS_EMPTY_ITER(I), I =:= []).
 -define (EMPTY_ITER_PATTERN, []).

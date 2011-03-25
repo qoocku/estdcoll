@@ -44,6 +44,8 @@
           next_iter/1,
           map/1,
           partition/1,
+          takewhile/1,
+          takewhile_next/1,
           tl/0,
           tail/0]).
 

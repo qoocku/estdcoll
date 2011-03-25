@@ -27,6 +27,7 @@
          test_filter/1,
          test_any/1,
          test_all/1,
+         test_takewhile/1,
          test_tl/1]).
 
 -export([test_dropwhile/2,
@@ -37,6 +38,7 @@
          test_filter/2,
          test_any/2,
          test_all/2,
+         test_takewhile/2,
          test_tl/2]).
 
 
@@ -52,6 +54,7 @@ groups () ->
                             test_fold,
                             test_map,
                             test_filter,
+                            test_takewhile,
                             test_any,
                             test_all]}].
 
@@ -131,6 +134,12 @@ test_any (Config) ->
 
 test_any (_, Config) ->
   test_predicate(Config, any).
+
+test_takewhile (Config) ->
+  do_specific_test(test_takewhile, Config).
+
+test_takewhile (_, Config) ->
+  test_predicate(Config, takewhile).
 
 test_tl (Config) ->
   do_specific_test(test_tl, Config).
@@ -285,7 +294,8 @@ apply (lists, Fun, [L]) when Fun =:= hd orelse Fun =:= tl ->
 apply (Mod, Fun, [V])  when Fun =:= hd orelse Fun =:= tl ->
   erlang:Fun(Mod:to_list(V));
 apply (Mod, Fun , [F, V]) when Mod =/= lists 
-                               andalso (Fun =:= dropwhile) ->
+                               andalso (Fun =:= dropwhile
+                                        orelse Fun =:= takewhile) ->
   lists:Fun(F, Mod:to_list(V));
 apply (Mod, Fun, Args) ->
   erlang:apply(Mod, Fun, Args).
@@ -293,14 +303,16 @@ apply (Mod, Fun, Args) ->
 cast (_, Fun, V) when Fun =/= map andalso 
                       Fun =/= foreach andalso 
                       Fun =/= filter andalso 
-                      Fun =/= dropwhile ->
+                      Fun =/= dropwhile andalso 
+                      Fun =/= takewhile ->
   V;
 cast (_Grp, Fun, Iter) when is_tuple(Iter)
                             andalso element(2, Iter) =:= iterator 
                             andalso (Fun =:= map
                                      orelse Fun =:= foreach
                                      orelse Fun =:= filter
-                                     orelse Fun =:= dropwhile) ->
+                                     orelse Fun =:= dropwhile
+                                     orelse Fun =:= takewhile) ->
   L = fun (I, Acc, Loop) ->
           try I:next() of
               {V, none} -> lists:reverse([V|Acc]);

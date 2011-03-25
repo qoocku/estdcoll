@@ -32,6 +32,9 @@
 -ifndef (TAIL_IMP).
 -define (TAIL_IMP, true).
 -endif.
+-ifndef (TAKEWHILE_IMP).
+-define (TAKEWHILE_IMP, true).
+-endif.
 -ifndef (PARTITION_IMP).
 -define (PARTITION_IMP, true).
 -endif.
@@ -59,8 +62,6 @@
               ({dropwhile, Item}) -> Pred(Item);
               (Item)              -> Oper(Item)
             end, dropwhile_next).
-
--endif.
 
 -ifdef (HEAD_IMP).
 
@@ -91,6 +92,7 @@ next () ->
                  F      -> {THIS, F}
                end,
   case estdcoll_iterators:do_next({Mod, Fun}, Oper, #repr{r = Iter}) of
+    none -> exit(bad_iterator);
     Last = #nxt{pair = {_, none}} -> Last#nxt.pair;
     #nxt{pair = {Item, I},
          oper = NewOper,
@@ -155,7 +157,12 @@ map (Fun) when is_function(Fun) ->
 -spec filter (b_collection:filter_fun()) -> iterator().
 
 filter (Pred) when is_function(Pred) ->  
+  PrevNext = case Next of
+               {M, F} -> {M, F};
+               Next   -> {THIS, Next}
+             end,
   new(Iter, fun
+              (prev_next)      -> PrevNext;
               ({filter, Item}) -> Pred(Item);
               (Item) -> Oper(Item)
             end, filter_next).
@@ -207,6 +214,29 @@ partition (Pred) when is_function(Pred) ->
 
 -endif.
 
+-ifndef (TAKEWHILE_ALL_IMP).
+-define (TAKEWHILE_NAME, takewhile).
+-else.
+-define (TAKEWHILE_NAME, default_takewhile).
+-endif.
+
+%% @doc Returns an iterator which returns any item till it does not
+%%      satisfies given predicate.
+
+-spec ?TAKEWHILE_NAME (b_collection:pred_fun()) -> iterator().
+
+?TAKEWHILE_NAME (Pred) when is_function(Pred) ->
+  PrevNext = case Next of
+               {M, F} -> {M, F};
+               Next   -> {THIS, Next}
+             end,
+  new(Iter, fun 
+              (prev_oper)         -> Oper;
+              (prev_next)         -> PrevNext;
+              ({takewhile, Item}) -> Pred(Item);
+              (Item)              -> Oper(Item)
+            end, takewhile_next).
+
 -ifdef (TAIL_IMP).
 
 %% @equiv begin {_, Tail} = Iter:next(), Tail end
@@ -225,7 +255,8 @@ tl () ->
 filter_next (none) ->
   exit(bad_iterator);
 filter_next (I) ->
-  case next_iter(I) of
+  {M, F} = Oper(prev_next),
+  case M:F(I) of
     ?EMPTY_ITER_PATTERN -> 
       none;
     Current = {Item, N} ->
@@ -246,7 +277,8 @@ filter_next (I) ->
 dropwhile_next (none) ->
   exit(bad_iterator);
 dropwhile_next (I) ->
-  case next_iter(I) of
+  {M, F} = Oper(prev_next),
+  case M:F(I) of
     none ->
       none;
     Current = {Item, N} ->
@@ -260,6 +292,24 @@ dropwhile_next (I) ->
 
 -endif.
 
+-ifndef (TAKEWHILE_NEXT_IMP).
 
+-compile ([{inline, [{takewhile_next, 1}]}]).
 
+takewhile_next (none) ->
+  exit(bad_iterator);
+takewhile_next (I) ->
+  {M, F} = Oper(prev_next),
+  case M:F(I) of
+    none ->
+      none;
+    Current = {Item, _} ->
+      case Oper({takewhile, Item}) of
+        true  -> Current;
+        false -> none
+      end
+  end.
 
+-endif.
+
+-endif.
