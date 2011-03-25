@@ -141,10 +141,8 @@ is_empty () ->
 internals () ->
   Dict.
 
-iterator () when Mod =:= dict ->
-  i_iterator_dict:new(Dict);
-iterator () when Mod =:= orddict ->
-  i_iterator_list:new(Dict).
+iterator () ->
+  i_iterator_dict:new({Mod, Dict}).
 
 map (Fun) when is_function(Fun) ->
   new({Mod, lists:map(Fun, Mod:to_list(Dict))}).
