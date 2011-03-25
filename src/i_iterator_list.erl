@@ -39,7 +39,10 @@
 %%% --------------------------------------------------------------------
 
 -opaque iterator () :: module().
--type repr     () :: {[any()], dict()}.
+-opaque repr     () :: list().
+
+-export_types ([iterator/0,
+                repr/0]).
 
 %%% ============================================================================
 %%% C l i e n t  A P I / E x p o r t e d  F u n c t i o n s

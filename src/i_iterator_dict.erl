@@ -27,7 +27,7 @@
 %%% R e c o r d s ,  T y p e s  a n d  S p e c s
 %%% --------------------------------------------------------------------
 
--opaque iterator () :: module().
+-opaque iterator () :: i_iterator_list:iterator().
 -opaque repr     () :: i_iterator_list:repr().
 
 -export_types ([iterator/0,
